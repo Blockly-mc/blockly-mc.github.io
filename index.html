@@ -1,74 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Minecraft Scripting Blocks → JS</title>
 <style>
-  :root {
-    --bg: #f8fafc;
-    --fg: #1e293b;
-    --panel: #ffffff;
-    --border: #e2e8f0;
-    --accent: #4a90e2;
-  }
-  [data-theme="dark"] {
-    --bg: #0f172a;
-    --fg: #f1f5f9;
-    --panel: #1e293b;
-    --border: #4a90e2;
-    --accent: #4a90e2;
-  }
-  html, body {
-    height:100%;
-    margin:0;
-    font-family:system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--fg);
-    transition:0.3s;
-  }
-  .app { display:grid; grid-template-rows:50px 1fr; height:100%; }
-  header { display:flex; align-items:center; padding:0 12px; border-bottom:1px solid var(--border); background: var(--panel); }
-  header h1 { font-size:16px; margin:0; flex:1; }
-  header button {
-    margin-left:8px;
-    padding:6px 12px;
-    border-radius:8px;
-    border:1px solid var(--border);
-    background: var(--panel);
-    color: var(--accent);
-    cursor:pointer;
-    transition:0.2s;
-  }
-  header button:hover { background: var(--accent); color: var(--panel); }
-  main { display:grid; grid-template-columns:1fr 40%; gap:8px; padding:8px; }
-  #blocklyArea { position:relative; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--panel); }
-  #blocklyDiv { position:absolute; inset:0; }
-  #codeOut {
-    width:100%;
-    height:100%;
-    border:1px solid var(--border);
-    border-radius:10px;
-    background:var(--panel);
-    color:var(--fg);
-    padding:8px;
-    font-family:monospace;
-    font-size:12px;
-    resize:none;
-    box-sizing:border-box;
-    transition:0.3s;
-  }
+:root {
+  --bg: #f8fafc;
+  --fg: #1e293b;
+  --panel: #ffffff;
+  --border: #e2e8f0;
+}
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --fg: #f1f5f9;
+  --panel: #1e293b;
+  --border: #334155;
+}
+html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg);}
+.app { display: grid; grid-template-rows: 50px 1fr; height: 100%; }
+header { display:flex; align-items:center; padding:0 12px; border-bottom:1px solid var(--border); background: var(--panel);}
+header h1 { font-size:16px; margin:0; flex:1;}
+header button { margin-left:8px; padding:6px 12px; border-radius:8px; border:1px solid var(--border); background: var(--bg); color: var(--fg); cursor:pointer; transition:0.2s; }
+header button:hover { opacity:0.8; }
+main { display:grid; grid-template-columns:1fr 40%; gap:8px; padding:8px; }
+#blocklyArea { position:relative; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--panel);}
+#blocklyDiv { position:absolute; inset:0;}
+#codeOut { width:100%; height:100%; border:1px solid var(--border); border-radius:10px; background:var(--panel); color:var(--fg); padding:8px; font-family:monospace; font-size:12px; resize:none; box-sizing:border-box; }
 </style>
 <script src="https://unpkg.com/blockly/blockly.min.js"></script>
 </head>
-<body data-theme="dark">
+<body>
 <div class="app">
   <header>
-    <h1>Minecraft Blockly Editor</h1>
+    <h1>Minecraft Scripting Blocks</h1>
     <button id="toggleTheme">Toggle Dark/Light</button>
     <button id="generate">Generate</button>
     <button id="copy">Copy</button>
-    <button id="runCode">Run JS</button>
   </header>
   <main>
     <div id="blocklyArea"><div id="blocklyDiv"></div></div>
@@ -77,93 +45,99 @@
 </div>
 
 <script>
-// Toolbox with extra tabs
+// Toolbox
 const toolbox = {
-  kind:"categoryToolbox",
-  contents:[
-    {kind:"category", name:"Events", colour:"210", contents:[
-      {kind:"block", type:"mc_on_player_join"},
-      {kind:"block", type:"mc_on_player_leave"},
-      {kind:"block", type:"mc_on_chat"},
-      {kind:"block", type:"mc_on_tick"},
-      {kind:"block", type:"mc_on_item_use"},
-      {kind:"block", type:"mc_on_block_break"},
-      {kind:"block", type:"mc_on_block_place"},
-      {kind:"block", type:"mc_on_entity_spawn"},
-      {kind:"block", type:"mc_on_entity_death"}
+  kind: "categoryToolbox",
+  contents: [
+    { kind: "category", name: "Events", colour: "210", contents: [
+      { kind: "block", type: "mc_on_player_join" },
+      { kind: "block", type: "mc_on_player_leave" },
+      { kind: "block", type: "mc_on_chat" },
+      { kind: "block", type: "mc_on_tick" },
+      { kind: "block", type: "mc_on_item_use" },
+      { kind: "block", type: "mc_on_block_break" },
+      { kind: "block", type: "mc_on_entity_spawn" }
     ]},
-    {kind:"category", name:"World", colour:"160", contents:[
-      {kind:"block", type:"mc_set_block"},
-      {kind:"block", type:"mc_get_block"},
-      {kind:"block", type:"mc_send_message"}
+    { kind: "category", name: "Player", colour: "120", contents: [
+      { kind: "block", type: "mc_run_command" },
+      { kind: "block", type: "mc_log" },
+      { kind: "block", type: "mc_send_message" }
     ]},
-    {kind:"category", name:"Player", colour:"120", contents:[
-      {kind:"block", type:"mc_run_command"},
-      {kind:"block", type:"mc_log"}
+    { kind: "category", name: "World", colour: "160", contents: [
+      { kind: "block", type: "mc_set_block" },
+      { kind: "block", type: "mc_get_block" }
     ]},
-    {kind:"category", name:"Entities", colour:"300", contents:[
-      {kind:"block", type:"mc_spawn_entity"},
-      {kind:"block", type:"mc_kill_entity"}
+    { kind: "category", name: "Entities", colour: "300", contents: [
+      { kind: "block", type: "mc_spawn_entity" },
+      { kind: "block", type: "mc_kill_entity" }
     ]},
-    {kind:"category", name:"Math", colour:"230", contents:[
+    { kind: "category", name: "Logic", categorystyle: "logic_category" },
+    { kind: "category", name: "Loops", categorystyle: "loop_category" },
+    { kind: "category", name: "Math", colour:"230", contents:[
       {kind:"block", type:"math_number"},
-      {kind:"block", type:"math_arithmetic"}
+      {kind:"block", type:"math_arithmetic"},
+      {kind:"block", type:"math_random_int"},
+      {kind:"block", type:"math_random_float"},
+      {kind:"block", type:"math_round"},
+      {kind:"block", type:"math_single"},
+      {kind:"block", type:"math_modulo"},
+      {kind:"block", type:"math_constrain"}
     ]},
-    {kind:"category", name:"Logic", categorystyle:"logic_category"},
-    {kind:"category", name:"Loops", categorystyle:"loop_category"},
-    {kind:"category", name:"Text", categorystyle:"text_category"},
-    {kind:"category", name:"Variables", custom:"VARIABLE"}
+    { kind: "category", name: "Text", categorystyle: "text_category" },
+    { kind: "category", name: "Variables", custom: "VARIABLE" }
   ]
 };
 
-// Define Minecraft blocks
+// Define blocks
 Blockly.defineBlocksWithJsonArray([
-  {type:"mc_on_player_join", message0:"when player joins %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_player_leave", message0:"when player leaves %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_chat", message0:"when chat message %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_tick", message0:"every tick %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_item_use", message0:"when item used %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_block_break", message0:"when block broken %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_block_place", message0:"when block placed %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_entity_spawn", message0:"when entity spawns %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
-  {type:"mc_on_entity_death", message0:"when entity dies %1", args0:[{type:"input_statement", name:"DO"}], colour:210},
+  { type: "mc_on_player_join", message0: "when player joins %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_player_leave", message0: "when player leaves %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_chat", message0: "when chat message %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_tick", message0: "every tick %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_item_use", message0: "when item used %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_block_break", message0: "when block broken %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_entity_spawn", message0: "when entity spawns %1", args0: [{ type:"input_statement", name:"DO" }], colour:210 },
 
-  {type:"mc_run_command", message0:"run command %1", args0:[{type:"field_input", name:"CMD", text:"say hi"}], previousStatement:null, nextStatement:null, colour:120},
-  {type:"mc_log", message0:"log %1", args0:[{type:"field_input", name:"MSG", text:"debug"}], previousStatement:null, nextStatement:null, colour:120},
-
-  {type:"mc_set_block", message0:"set block at %1 %2 %3 to %4", args0:[
-    {type:"field_number", name:"X", value:0},
-    {type:"field_number", name:"Y", value:0},
-    {type:"field_number", name:"Z", value:0},
-    {type:"field_input", name:"BLOCK", text:"minecraft:stone"}], previousStatement:null, nextStatement:null, colour:160},
-  {type:"mc_get_block", message0:"get block at %1 %2 %3", args0:[
-    {type:"field_number", name:"X", value:0},
-    {type:"field_number", name:"Y", value:0},
-    {type:"field_number", name:"Z", value:0}], output:null, colour:160},
-
-  {type:"mc_spawn_entity", message0:"spawn entity %1 at %2 %3 %4", args0:[
-    {type:"field_input", name:"ENTITY", text:"minecraft:pig"},
-    {type:"field_number", name:"X", value:0},
-    {type:"field_number", name:"Y", value:0},
-    {type:"field_number", name:"Z", value:0}], previousStatement:null, nextStatement:null, colour:300},
-  {type:"mc_kill_entity", message0:"kill entity %1", args0:[
-    {type:"field_input", name:"ENTITY", text:"minecraft:pig"}], previousStatement:null, nextStatement:null, colour:300},
-
-  {type:"mc_send_message", message0:"send message %1 to %2", args0:[
+  { type: "mc_run_command", message0: "run command %1", args0: [{ type:"field_input", name:"CMD", text: "say hi" }], previousStatement:null, nextStatement:null, colour:120 },
+  { type: "mc_log", message0: "log %1", args0: [{ type:"field_input", name:"MSG", text: "debug" }], previousStatement:null, nextStatement:null, colour:120 },
+  { type: "mc_send_message", message0: "send message %1 to %2", args0: [
     {type:"field_input", name:"MSG", text:"Hello"},
-    {type:"field_dropdown", name:"TARGET", options:[["world","world"],["player","player"]]}], previousStatement:null, nextStatement:null, colour:160}
+    {type:"field_dropdown", name:"TARGET", options:[["player","player"],["world","world"]]}
+  ], previousStatement:null, nextStatement:null, colour:120},
+
+  { type: "mc_set_block", message0: "set block at %1 %2 %3 to %4", args0: [
+    { type:"field_number", name:"X", value:0 },
+    { type:"field_number", name:"Y", value:0 },
+    { type:"field_number", name:"Z", value:0 },
+    { type:"field_input", name:"BLOCK", text:"minecraft:stone" }], previousStatement:null, nextStatement:null, colour:160 },
+
+  { type: "mc_get_block", message0: "get block at %1 %2 %3", args0: [
+    { type:"field_number", name:"X", value:0 },
+    { type:"field_number", name:"Y", value:0 },
+    { type:"field_number", name:"Z", value:0 }], output:null, colour:160 },
+
+  { type: "mc_spawn_entity", message0: "spawn entity %1 at %2 %3 %4", args0: [
+    { type:"field_input", name:"ENTITY", text:"minecraft:pig" },
+    { type:"field_number", name:"X", value:0 },
+    { type:"field_number", name:"Y", value:0 },
+    { type:"field_number", name:"Z", value:0 }], previousStatement:null, nextStatement:null, colour:300 },
+
+  { type: "mc_kill_entity", message0: "kill entity %1", args0: [
+    { type:"field_input", name:"ENTITY", text:"minecraft:pig" }], previousStatement:null, nextStatement:null, colour:300 }
 ]);
 
 // Generators
-Blockly.JavaScript['mc_run_command'] = b => `console.log("Run command:", \`${b.getFieldValue('CMD')}\`);\n`;
-Blockly.JavaScript['mc_log'] = b => `console.log(\`${b.getFieldValue('MSG')}\`);\n`;
-Blockly.JavaScript['mc_set_block'] = b => `console.log("Set block", ${b.getFieldValue('X')},${b.getFieldValue('Y')},${b.getFieldValue('Z')},"to",\`${b.getFieldValue('BLOCK')}\`);\n`;
-Blockly.JavaScript['mc_get_block'] = b => [`"Get block at ${b.getFieldValue('X')},${b.getFieldValue('Y')},${b.getFieldValue('Z')}"`, Blockly.JavaScript.ORDER_ATOMIC];
-Blockly.JavaScript['mc_spawn_entity'] = b => `console.log("Spawn entity", \`${b.getFieldValue('ENTITY')}\`, "at", ${b.getFieldValue('X')},${b.getFieldValue('Y')},${b.getFieldValue('Z')});\n`;
-Blockly.JavaScript['mc_kill_entity'] = b => `console.log("Kill entity", \`${b.getFieldValue('ENTITY')}\`);\n`;
+Blockly.JavaScript['mc_run_command'] = b => `world.getDimension('overworld').runCommand(\`${b.getFieldValue('CMD')}\`);\n`;
+Blockly.JavaScript['mc_log'] = b => `console.warn(\`${b.getFieldValue('MSG')}\`);\n`;
 Blockly.JavaScript['mc_send_message'] = b => {
-  return `console.log("Send message to ${b.getFieldValue('TARGET')}: \`${b.getFieldValue('MSG')}\`");\n`;
+  const target = b.getFieldValue('TARGET');
+  const msg = b.getFieldValue('MSG');
+  return target==="player" ? `ev.player.sendMessage("${msg}");\n` : `world.getPlayers().forEach(p=>p.sendMessage("${msg}"));\n`;
 };
+Blockly.JavaScript['mc_set_block'] = b => `world.getDimension('overworld').getBlock({x:${b.getFieldValue('X')}, y:${b.getFieldValue('Y')}, z:${b.getFieldValue('Z')}}).setType(\`${b.getFieldValue('BLOCK')}\`);\n`;
+Blockly.JavaScript['mc_get_block'] = b => [`world.getDimension('overworld').getBlock({x:${b.getFieldValue('X')}, y:${b.getFieldValue('Y')}, z:${b.getFieldValue('Z')}})`, Blockly.JavaScript.ORDER_ATOMIC];
+Blockly.JavaScript['mc_spawn_entity'] = b => `world.getDimension('overworld').spawnEntity(\`${b.getFieldValue('ENTITY')}\`, {x:${b.getFieldValue('X')}, y:${b.getFieldValue('Y')}, z:${b.getFieldValue('Z')}});\n`;
+Blockly.JavaScript['mc_kill_entity'] = b => `for (const e of world.getDimension('overworld').getEntities({type: \`${b.getFieldValue('ENTITY')}\`})) e.kill();\n`;
 
 function genEvent(subscribeLine, bodyDefault="") {
   return function(block){
@@ -172,54 +146,81 @@ function genEvent(subscribeLine, bodyDefault="") {
   }
 }
 
-Blockly.JavaScript['mc_on_player_join'] = genEvent(`console.log("Player joined");`);
-Blockly.JavaScript['mc_on_player_leave'] = genEvent(`console.log("Player left");`);
-Blockly.JavaScript['mc_on_chat'] = genEvent(`console.log("Chat event");`);
+Blockly.JavaScript['mc_on_player_join'] = genEvent(`world.afterEvents.playerJoin.subscribe(ev =>`);
+Blockly.JavaScript['mc_on_player_leave'] = genEvent(`world.afterEvents.playerLeave.subscribe(ev =>`);
+Blockly.JavaScript['mc_on_chat'] = genEvent(`world.beforeEvents.chatSend.subscribe(ev =>`);
 Blockly.JavaScript['mc_on_tick'] = block => {
   const body = Blockly.JavaScript.statementToCode(block, 'DO') || '';
-  return `setInterval(()=>{\n${body}},1000);\n`;
+  return `system.runInterval(() => {\n${body}}, 1);\n`;
 };
-Blockly.JavaScript['mc_on_item_use'] = genEvent(`console.log("Item used");`);
-Blockly.JavaScript['mc_on_block_break'] = genEvent(`console.log("Block broken");`);
-Blockly.JavaScript['mc_on_block_place'] = genEvent(`console.log("Block placed");`);
-Blockly.JavaScript['mc_on_entity_spawn'] = genEvent(`console.log("Entity spawned");`);
-Blockly.JavaScript['mc_on_entity_death'] = genEvent(`console.log("Entity died");`);
+Blockly.JavaScript['mc_on_item_use'] = genEvent(`world.beforeEvents.itemUse.subscribe(ev =>`);
+Blockly.JavaScript['mc_on_block_break'] = genEvent(`world.beforeEvents.playerBreakBlock.subscribe(ev =>`);
+Blockly.JavaScript['mc_on_entity_spawn'] = genEvent(`world.afterEvents.entitySpawn.subscribe(ev =>`);
 
-// Inject workspace with dark theme
-const workspace = Blockly.inject('blocklyDiv', {toolbox, theme: Blockly.Themes.Dark});
+// Math Generators
+Blockly.JavaScript['math_random_int'] = function(block) {
+  const from = Blockly.JavaScript.valueToCode(block, 'FROM', Blockly.JavaScript.ORDER_ATOMIC) || 0;
+  const to = Blockly.JavaScript.valueToCode(block, 'TO', Blockly.JavaScript.ORDER_ATOMIC) || 100;
+  return [`Math.floor(Math.random() * (${to} - ${from} + 1)) + ${from}`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.JavaScript['math_random_float'] = function(block) {
+  return [`Math.random()`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.JavaScript['math_round'] = function(block) {
+  const value = Blockly.JavaScript.valueToCode(block, 'NUM', Blockly.JavaScript.ORDER_ATOMIC) || 0;
+  const op = block.getFieldValue('OP');
+  const code = op === 'ROUNDUP' ? `Math.ceil(${value})` : op === 'ROUNDDOWN' ? `Math.floor(${value})` : `Math.round(${value})`;
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.JavaScript['math_single'] = function(block) {
+  const value = Blockly.JavaScript.valueToCode(block, 'NUM', Blockly.JavaScript.ORDER_ATOMIC) || 0;
+  const op = block.getFieldValue('OP');
+  const code = op === 'ROOT' ? `Math.sqrt(${value})` : op === 'ABS' ? `Math.abs(${value})` : `-${value}`;
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.JavaScript['math_modulo'] = function(block) {
+  const a = Blockly.JavaScript.valueToCode(block, 'A', Blockly.JavaScript.ORDER_ATOMIC) || 0;
+  const b = Blockly.JavaScript.valueToCode(block, 'B', Blockly.JavaScript.ORDER_ATOMIC) || 1;
+  return [`(${a} % ${b})`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.JavaScript['math_constrain'] = function(block) {
+  const value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC) || 0;
+  const low = Blockly.JavaScript.valueToCode(block, 'LOW', Blockly.JavaScript.ORDER_ATOMIC) || 0;
+  const high = Blockly.JavaScript.valueToCode(block, 'HIGH', Blockly.JavaScript.ORDER_ATOMIC) || 100;
+  return [`Math.min(Math.max(${value}, ${low}), ${high})`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+// Inject workspace
+const workspace = Blockly.inject('blocklyDiv', { toolbox, theme: Blockly.Themes.Dark });
 
 // Generate code
 function generate(){
   const code = Blockly.JavaScript.workspaceToCode(workspace);
-  document.getElementById('codeOut').value = code;
+  const header = `import { world, system, ItemStack } from "@minecraft/server";\n\n`;
+  document.getElementById('codeOut').value = header + code;
 }
+document.getElementById('generate').addEventListener('click', generate);
 
-// Copy
+// Copy to clipboard
 async function copyCode(){
   const ta = document.getElementById('codeOut');
-  if(!ta.value.trim()) return;
-  try { await navigator.clipboard.writeText(ta.value); alert("Copied!"); }
-  catch { ta.select(); document.execCommand('copy'); alert("Copied!"); }
+  if (!ta.value.trim()) return;
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    alert("Copied to clipboard!");
+  } catch {
+    ta.select();
+    document.execCommand('copy');
+    alert("Copied to clipboard!");
+  }
 }
-
-// Run JS (simulate execution)
-function runCode(){
-  const code = document.getElementById('codeOut').value;
-  try{ eval(code); }
-  catch(e){ console.error("Error:", e); alert("Error in JS code, see console."); }
-}
+document.getElementById('copy').addEventListener('click', copyCode);
 
 // Theme toggle
 document.getElementById('toggleTheme').onclick = () => {
-  if(document.body.dataset.theme === 'dark') document.body.dataset.theme='light';
-  else document.body.dataset.theme='dark';
-  Blockly.svgResize(workspace);
+  if(document.body.dataset.theme === 'dark') delete document.body.dataset.theme;
+  else document.body.dataset.theme = 'dark';
 };
-
-// Event listeners
-document.getElementById('generate').addEventListener('click', generate);
-document.getElementById('copy').addEventListener('click', copyCode);
-document.getElementById('runCode').addEventListener('click', runCode);
 </script>
 </body>
 </html>
