@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Blockly-MC → JS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scratch-style Blockly Editor</title>
 <style>
 :root {
   --bg: #0a0f2e;
@@ -12,17 +12,30 @@
   --border: #3a4a90;
   --btn-bg: #3a4a90;
   --btn-hover: #2a3870;
+  --tab-active: #3a4a90;
+  --tab-inactive: #2a3a80;
 }
-html, body { height: 100%; margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg); color: var(--fg);}
-.app { display: grid; grid-template-rows: 50px 1fr; height: 100%; }
-header { display:flex; align-items:center; padding:0 12px; border-bottom:1px solid var(--border); background: var(--panel);}
-header h1 { font-size:18px; margin:0; flex:1; font-weight:bold;}
-header button { margin-left:8px; padding:6px 12px; border-radius:12px; border:none; background: var(--btn-bg); color: var(--fg); cursor:pointer; transition:0.2s; font-weight:bold;}
+html, body { height:100%; margin:0; font-family: "Segoe UI", sans-serif; background: var(--bg); color: var(--fg);}
+.app { display: grid; grid-template-rows: auto 1fr 200px; height:100%; overflow: hidden; }
+header { display:flex; align-items:center; padding:0 12px; border-bottom:1px solid var(--border); background: var(--panel); }
+header h1 { margin:0; font-weight:bold; flex:1; }
+header button { margin-left:8px; padding:6px 12px; border-radius:12px; border:none; background: var(--btn-bg); color: var(--fg); cursor:pointer; transition:0.2s; font-weight:bold; }
 header button:hover { background: var(--btn-hover); }
-main { display:grid; grid-template-columns:1fr 40%; gap:8px; padding:8px; }
-#blocklyArea { position:relative; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--panel);}
-#blocklyDiv { position:absolute; inset:0;}
-#codeOut { width:100%; height:100%; border:2px solid var(--border); border-radius:12px; background:var(--panel); color:var(--fg); padding:8px; font-family:monospace; font-size:13px; resize:none; box-sizing:border-box; }
+
+.main-content { display:grid; grid-template-columns: 250px 1fr; gap:8px; padding:8px; height:100%; overflow: hidden; }
+#leftPanel { display:flex; flex-direction:column; background: var(--panel); border-radius:12px; border:2px solid var(--border); overflow:hidden; }
+#categoryTabs { display:flex; gap:4px; padding:4px; background: var(--panel); border-bottom:2px solid var(--border); flex-shrink:0; }
+.tab { padding:6px 12px; border-radius:8px 8px 0 0; cursor:pointer; background: var(--tab-inactive); transition:0.2s; font-weight:bold; color:#aad4ff; }
+.tab.active { background: var(--tab-active); }
+#blockContainer { flex:1; display:flex; flex-direction: column; gap:4px; padding:8px; overflow-y:auto; }
+.block { padding:6px 12px; background:#2a3a80; border-radius:8px; cursor:grab; transition:0.2s; color:#fff; text-align:center; user-select:none; }
+.block:hover { background:#3a4a90; }
+
+#workspaceArea { position:relative; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--panel); }
+#blocklyDiv { position:absolute; inset:0; }
+
+#resizer { height:6px; background:#3a4a90; cursor:row-resize; }
+#codeOut { width:100%; height:100%; border:2px solid var(--border); border-radius:12px; background:var(--panel); color:var(--fg); padding:8px; font-family:monospace; font-size:13px; resize:none; box-sizing:border-box; overflow:auto; }
 </style>
 <script src="https://unpkg.com/blockly/blockly.min.js"></script>
 </head>
@@ -30,50 +43,155 @@ main { display:grid; grid-template-columns:1fr 40%; gap:8px; padding:8px; }
 <div class="app">
   <header>
     <h1>Blockly-MC</h1>
-    <button id="toggleTheme">Toggle Theme</button>
-    <button id="copy">Copy</button>
+    <button id="copy">Copy Code</button>
   </header>
-  <main>
-    <div id="blocklyArea"><div id="blocklyDiv"></div></div>
-    <textarea id="codeOut" placeholder="Generated JS code will appear here…"></textarea>
-  </main>
+
+  <div class="main-content">
+    <!-- Left panel -->
+    <div id="leftPanel">
+      <div id="categoryTabs">
+        <div class="tab active" data-category="Events">Events</div>
+        <div class="tab" data-category="Player">Player</div>
+        <div class="tab" data-category="World">World</div>
+        <div class="tab" data-category="Entities">Entities</div>
+      </div>
+      <div id="blockContainer"></div>
+    </div>
+
+    <!-- Workspace -->
+    <div id="workspaceArea"><div id="blocklyDiv"></div></div>
+  </div>
+
+  <!-- Resizer -->
+  <div id="resizer"></div>
+
+  <!-- Live code -->
+  <textarea id="codeOut" placeholder="Generated JS code will appear here…"></textarea>
 </div>
 
 <script>
-// --- Toolbox, blocks, and generators remain same as your original code ---
-// (copy your full blocks & Blockly.JavaScript generators here)
+// --- Define blocks ---
+Blockly.defineBlocksWithJsonArray([
+  { type: "mc_on_player_join", message0: "when player joins %1", args0:[{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_on_player_leave", message0: "when player leaves %1", args0:[{ type:"input_statement", name:"DO" }], colour:210 },
+  { type: "mc_run_command", message0: "run command %1", args0:[{ type:"field_input", name:"CMD", text:"say hi" }], previousStatement:null, nextStatement:null, colour:120 },
+  { type: "mc_send_message", message0: "send message %1", args0:[{ type:"field_input", name:"MSG", text:"Hello" }], previousStatement:null, nextStatement:null, colour:120 },
+  { type: "mc_set_block", message0: "set block at %1 %2 %3 to %4", args0:[
+    { type:"field_number", name:"X", value:0 },
+    { type:"field_number", name:"Y", value:0 },
+    { type:"field_number", name:"Z", value:0 },
+    { type:"field_input", name:"BLOCK", text:"minecraft:stone" }], previousStatement:null, nextStatement:null, colour:160 },
+  { type: "mc_get_block", message0: "get block at %1 %2 %3", args0:[
+    { type:"field_number", name:"X", value:0 },
+    { type:"field_number", name:"Y", value:0 },
+    { type:"field_number", name:"Z", value:0 }], output:null, colour:160 },
+  { type: "mc_spawn_entity", message0: "spawn entity %1 at %2 %3 %4", args0:[
+    { type:"field_input", name:"ENTITY", text:"minecraft:pig" },
+    { type:"field_number", name:"X", value:0 },
+    { type:"field_number", name:"Y", value:0 },
+    { type:"field_number", name:"Z", value:0 }], previousStatement:null, nextStatement:null, colour:300 },
+  { type: "mc_kill_entity", message0: "kill entity %1", args0:[
+    { type:"field_input", name:"ENTITY", text:"minecraft:pig" }], previousStatement:null, nextStatement:null, colour:300 }
+]);
 
+// --- Generators ---
+Blockly.JavaScript['mc_on_player_join'] = b => `world.afterEvents.playerJoin.subscribe(ev => {\n${Blockly.JavaScript.statementToCode(b,'DO')}});\n`;
+Blockly.JavaScript['mc_on_player_leave'] = b => `world.afterEvents.playerLeave.subscribe(ev => {\n${Blockly.JavaScript.statementToCode(b,'DO')}});\n`;
+Blockly.JavaScript['mc_run_command'] = b => `world.getDimension('overworld').runCommand(\`${b.getFieldValue('CMD')}\`);\n`;
+Blockly.JavaScript['mc_send_message'] = b => `ev.player.sendMessage("${b.getFieldValue('MSG')}");\n`;
+Blockly.JavaScript['mc_set_block'] = b => `world.getDimension('overworld').getBlock({x:${b.getFieldValue('X')},y:${b.getFieldValue('Y')},z:${b.getFieldValue('Z')}}).setType(\`${b.getFieldValue('BLOCK')}\`);\n`;
+Blockly.JavaScript['mc_get_block'] = b => [`world.getDimension('overworld').getBlock({x:${b.getFieldValue('X')},y:${b.getFieldValue('Y')},z:${b.getFieldValue('Z')}})`, Blockly.JavaScript.ORDER_ATOMIC];
+Blockly.JavaScript['mc_spawn_entity'] = b => `world.getDimension('overworld').spawnEntity(\`${b.getFieldValue('ENTITY')}\`, {x:${b.getFieldValue('X')},y:${b.getFieldValue('Y')},z:${b.getFieldValue('Z')}});\n`;
+Blockly.JavaScript['mc_kill_entity'] = b => `for (const e of world.getDimension('overworld').getEntities({type: \`${b.getFieldValue('ENTITY')}\`})) e.kill();\n`;
+
+// --- Category blocks ---
+const categories = {
+  Events: ['mc_on_player_join','mc_on_player_leave'],
+  Player: ['mc_run_command','mc_send_message'],
+  World: ['mc_set_block','mc_get_block'],
+  Entities: ['mc_spawn_entity','mc_kill_entity']
+};
+
+const blockContainer = document.getElementById('blockContainer');
+function showCategory(name){
+  blockContainer.innerHTML = '';
+  categories[name].forEach(type => {
+    const btn = document.createElement('div');
+    btn.className = 'block';
+    btn.textContent = type.replace(/mc_/,'').replace(/_/g,' ');
+    btn.dataset.type = type;
+    btn.draggable = true;
+    btn.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', type);
+    });
+    blockContainer.appendChild(btn);
+  });
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    showCategory(tab.dataset.category);
+  });
+});
+showCategory('Events');
+
+// --- Inject Blockly workspace ---
 const workspace = Blockly.inject('blocklyDiv', { 
-  toolbox, 
+  toolbox: null, 
   theme: Blockly.Themes.Dark,
   grid: { spacing: 20, length: 3, colour: '#ffffff22', snap: true },
   trashcan: true
 });
 
-// --- Auto-generate code live ---
+// --- Drop blocks from left panel ---
+document.getElementById('workspaceArea').addEventListener('dragover', e=>{
+  e.preventDefault();
+});
+document.getElementById('workspaceArea').addEventListener('drop', e=>{
+  e.preventDefault();
+  const type = e.dataTransfer.getData('text/plain');
+  if(!type) return;
+  const xmlText = `<xml><block type="${type}" x="20" y="20"></block></xml>`;
+  Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(xmlText), workspace);
+});
+
+// --- Live code generation ---
 function generate() {
   const code = Blockly.JavaScript.workspaceToCode(workspace);
   const header = `import { world, system, ItemStack } from "@minecraft/server";\n\n`;
   document.getElementById('codeOut').value = header + code;
 }
-
-// Listen for any change in workspace
 workspace.addChangeListener(generate);
 
-// --- Copy to clipboard ---
-async function copyCode(){
+// --- Copy button ---
+document.getElementById('copy').addEventListener('click', async () => {
   const ta = document.getElementById('codeOut');
   if (!ta.value.trim()) return;
   try { await navigator.clipboard.writeText(ta.value); alert("Copied to clipboard!"); } 
   catch { ta.select(); document.execCommand('copy'); alert("Copied to clipboard!"); }
-}
-document.getElementById('copy').addEventListener('click', copyCode);
+});
 
-// --- Theme toggle ---
-document.getElementById('toggleTheme').onclick = () => {
-  if(document.body.dataset.theme === 'dark') delete document.body.dataset.theme;
-  else document.body.dataset.theme = 'dark';
-};
+// --- Resizer for code panel ---
+const resizer = document.getElementById('resizer');
+const codePanel = document.getElementById('codeOut');
+let isResizing = false;
+
+resizer.addEventListener('mousedown', e=>{
+  isResizing = true;
+  document.body.style.cursor = 'row-resize';
+});
+document.addEventListener('mousemove', e=>{
+  if(!isResizing) return;
+  const appRect = document.querySelector('.app').getBoundingClientRect();
+  const newHeight = appRect.bottom - e.clientY;
+  codePanel.style.height = `${newHeight}px`;
+});
+document.addEventListener('mouseup', e=>{
+  if(isResizing) { isResizing=false; document.body.style.cursor='default'; }
+});
 </script>
 </body>
 </html>
