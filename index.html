@@ -435,12 +435,7 @@ header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;ba
           <button class="tog" id="togAC" onclick="S.autoCollapse=!S.autoCollapse;this.classList.toggle('on')"></button>
         </div>
       </div>
-      <div class="ddsec">Output</div>
       <div class="sdd">
-        <div class="sdr">
-          <div><div class="sdl">Line Numbers</div><div class="sds">Show in code output</div></div>
-          <button class="tog" id="togLN" onclick="S.lineNums=!S.lineNums;this.classList.toggle('on');updateCode()"></button>
-        </div>
         <div class="sdr">
           <div><div class="sdl">Compact Blocks</div><div class="sds">Less padding on blocks</div></div>
           <button class="tog" id="togCmp" onclick="toggleCompact();this.classList.toggle('on')"></button>
@@ -517,7 +512,6 @@ header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;ba
         <button class="ltab" onclick="setLang('js',this)">JS</button>
       </div>
       <div class="cact">
-        <button class="cbtn" onclick="S.lineNums=!S.lineNums;updateCode()" title="Line numbers">123</button>
         <button class="cbtn" onclick="copyCode()" title="Copy">⎘</button>
         <button class="cbtn" onclick="exportScript()" title="Export">💾</button>
       </div>
