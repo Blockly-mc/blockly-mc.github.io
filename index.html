@@ -3,1601 +3,1780 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⛏BlocklyMC⛏</title>
+<title>MC Script Builder</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap');
-
-  :root {
-    --grass: #5D9E3F;
-    --dirt: #8B5E3C;
-    --stone: #888C8F;
-    --diamond: #4FE4E4;
-    --gold: #F5C518;
-    --redstone: #FF3333;
-    --emerald: #16C784;
-    --netherite: #3D3640;
-    --sky: #87CEEB;
-    --night: #0A0E1A;
-    --wood: #A0742A;
-    --lapis: #1E5BC6;
-    --bg: #0f1923;
-    --panel: #151e2b;
-    --panel2: #1a2535;
-    --border: #2a3a50;
-    --text: #e0eaff;
-    --muted: #6a7f99;
-    --accent: #4FE4E4;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* HEADER */
-  header {
-    background: var(--panel);
-    border-bottom: 2px solid var(--border);
-    padding: 0 16px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
-    color: var(--diamond);
-    text-shadow: 0 0 12px rgba(79,228,228,0.5);
-    letter-spacing: 1px;
-    white-space: nowrap;
-  }
-
-  .logo span { color: var(--grass); }
-
-  header .spacer { flex: 1; }
-
-  .header-btn {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--text);
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .header-btn:hover { background: var(--panel2); border-color: var(--accent); color: var(--accent); }
-  .header-btn.primary { background: var(--diamond); border-color: var(--diamond); color: #0a1520; }
-  .header-btn.primary:hover { background: #6feaea; }
-  .header-btn.danger { border-color: var(--redstone); color: var(--redstone); }
-  .header-btn.danger:hover { background: rgba(255,51,51,0.1); }
-
-  /* MAIN LAYOUT */
-  .main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  /* SIDEBAR - Block Palette */
-  .sidebar {
-    width: 230px;
-    background: var(--panel);
-    border-right: 2px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .sidebar-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 7px;
-    color: var(--muted);
-    padding: 12px 14px 8px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .sidebar-search {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .sidebar-search input {
-    width: 100%;
-    background: var(--panel2);
-    border: 1.5px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    padding: 6px 10px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 12px;
-    outline: none;
-  }
-  .sidebar-search input:focus { border-color: var(--accent); }
-
-  .block-categories {
-    overflow-y: auto;
-    flex: 1;
-    padding: 6px 0;
-  }
-
-  .block-categories::-webkit-scrollbar { width: 4px; }
-  .block-categories::-webkit-scrollbar-track { background: transparent; }
-  .block-categories::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .cat-header {
-    font-size: 10px;
-    font-weight: 800;
-    color: var(--muted);
-    padding: 8px 14px 4px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .cat-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-  }
-
-  .palette-block {
-    margin: 2px 8px;
-    padding: 7px 10px;
-    border-radius: 6px;
-    cursor: grab;
-    border: 1.5px solid transparent;
-    transition: all 0.12s;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .palette-block:hover {
-    border-color: currentColor;
-    transform: translateX(3px);
-    filter: brightness(1.15);
-  }
-
-  .palette-block:active { cursor: grabbing; transform: scale(0.96); }
-
-  .palette-block .block-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-
-  /* CANVAS */
-  .canvas-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg);
-    position: relative;
-  }
-
-  .canvas-header {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-    background: var(--panel);
-  }
-
-  .canvas-header span {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 600;
-  }
-
-  .canvas-header strong {
-    font-size: 12px;
-    color: var(--text);
-  }
-
-  .canvas-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    position: relative;
-  }
-
-  .canvas-scroll::-webkit-scrollbar { width: 6px; }
-  .canvas-scroll::-webkit-scrollbar-track { background: transparent; }
-  .canvas-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  .drop-zone {
-    min-height: 400px;
-    border: 2px dashed var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    transition: all 0.2s;
-    position: relative;
-  }
-
-  .drop-zone.drag-over {
-    border-color: var(--accent);
-    background: rgba(79,228,228,0.04);
-  }
-
-  .drop-hint {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    pointer-events: none;
-  }
-
-  .drop-hint .icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 12px;
-    opacity: 0.3;
-  }
-
-  .drop-hint p {
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .drop-hint small {
-    color: var(--muted);
-    font-size: 11px;
-    opacity: 0.6;
-  }
-
-  /* BLOCKS */
-  .script-block {
-    border-radius: 8px;
-    margin-bottom: 8px;
-    border: 2px solid transparent;
-    position: relative;
-    transition: box-shadow 0.15s;
-  }
-
-  .script-block:hover { box-shadow: 0 0 0 1px rgba(255,255,255,0.08); }
-  .script-block.selected { box-shadow: 0 0 0 2px var(--accent); }
-
-  .block-header {
-    padding: 8px 12px;
-    border-radius: 6px 6px 0 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .block-label {
-    font-weight: 800;
-    font-size: 13px;
-    flex: 1;
-  }
-
-  .block-controls {
-    display: flex;
-    gap: 4px;
-  }
-
-  .block-btn {
-    background: rgba(0,0,0,0.2);
-    border: none;
-    color: rgba(255,255,255,0.7);
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    transition: all 0.1s;
-  }
-  .block-btn:hover { background: rgba(0,0,0,0.4); color: white; }
-
-  .block-body {
-    padding: 10px 12px;
-    border-radius: 0 0 6px 6px;
-    background: rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .block-nested {
-    margin-left: 20px;
-    border-left: 3px solid rgba(255,255,255,0.1);
-    padding-left: 12px;
-  }
-
-  .field-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .field-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.6);
-    white-space: nowrap;
-    min-width: 60px;
-  }
-
-  .field-input {
-    background: rgba(0,0,0,0.3);
-    border: 1.5px solid rgba(255,255,255,0.1);
-    border-radius: 5px;
-    color: white;
-    padding: 4px 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.15s;
-    min-width: 80px;
-  }
-
-  .field-input:focus { border-color: rgba(255,255,255,0.4); }
-
-  .field-input.wide { flex: 1; min-width: 180px; }
-
-  .field-select {
-    background: rgba(0,0,0,0.35);
-    border: 1.5px solid rgba(255,255,255,0.1);
-    border-radius: 5px;
-    color: white;
-    padding: 4px 8px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .field-select option { background: #1a2535; }
-
-  .block-children-zone {
-    min-height: 36px;
-    border: 1.5px dashed rgba(255,255,255,0.1);
-    border-radius: 6px;
-    padding: 6px;
-    transition: all 0.15s;
-  }
-
-  .block-children-zone.drag-over {
-    border-color: rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.03);
-  }
-
-  .add-child-hint {
-    text-align: center;
-    color: rgba(255,255,255,0.25);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px;
-    pointer-events: none;
-  }
-
-  /* CODE PANEL */
-  .code-panel {
-    width: 340px;
-    background: var(--panel);
-    border-left: 2px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .code-panel-header {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel2);
-    flex-shrink: 0;
-  }
-
-  .code-panel-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 7px;
-    color: var(--accent);
-    letter-spacing: 1px;
-  }
-
-  .lang-tabs {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-  }
-
-  .lang-tab {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--muted);
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.12s;
-  }
-  .lang-tab.active { background: var(--accent); border-color: var(--accent); color: #0a1520; }
-  .lang-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-
-  .code-output {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    line-height: 1.7;
-    white-space: pre;
-    color: #abb2bf;
-  }
-
-  .code-output::-webkit-scrollbar { width: 4px; }
-  .code-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* Syntax colors */
-  .kw { color: #c678dd; }
-  .fn { color: #61afef; }
-  .str { color: #98c379; }
-  .num { color: #d19a66; }
-  .cm { color: #5c6370; font-style: italic; }
-  .ty { color: #e5c07b; }
-  .op { color: #56b6c2; }
-  .prop { color: #e06c75; }
-  .ev { color: #4FE4E4; }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--panel2);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    z-index: 9999;
-    animation: toastIn 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  @keyframes toastIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .toast.success { border-color: var(--emerald); color: var(--emerald); }
-  .toast.info { border-color: var(--diamond); color: var(--diamond); }
-
-  /* BLOCK COLOR THEMES */
-  .theme-event { background: #1a2e4a; border-color: #2563a8; }
-  .theme-event .block-header { background: #1e3a5f; }
-  .theme-event .block-label { color: #60a5fa; }
-
-  .theme-system { background: #1a2a1a; border-color: #2d6a2d; }
-  .theme-system .block-header { background: #1f3b1f; }
-  .theme-system .block-label { color: #4ade80; }
-
-  .theme-world { background: #2a1a1a; border-color: #7a2020; }
-  .theme-world .block-header { background: #3b1f1f; }
-  .theme-world .block-label { color: #f87171; }
-
-  .theme-entity { background: #2a1f0a; border-color: #8a5a0a; }
-  .theme-entity .block-header { background: #3b2c0f; }
-  .theme-entity .block-label { color: #fbbf24; }
-
-  .theme-player { background: #1a1a2e; border-color: #4a2d8a; }
-  .theme-player .block-header { background: #231f3b; }
-  .theme-player .block-label { color: #a78bfa; }
-
-  .theme-logic { background: #1e2020; border-color: #3d5050; }
-  .theme-logic .block-header { background: #232929; }
-  .theme-logic .block-label { color: #67e8f9; }
-
-  .theme-variable { background: #1a2020; border-color: #2a5050; }
-  .theme-variable .block-header { background: #1f2b2b; }
-  .theme-variable .block-label { color: #34d399; }
-
-  .theme-output { background: #201a2a; border-color: #5a2a7a; }
-  .theme-output .block-header { background: #2b1f3b; }
-  .theme-output .block-label { color: #c084fc; }
-
-  /* Drag feedback */
-  .dragging-palette { opacity: 0.5; }
-
-  .script-block.drag-source { opacity: 0.4; }
-
-  /* Resize handle */
-  .resize-handle {
-    width: 4px;
-    cursor: col-resize;
-    background: var(--border);
-    transition: background 0.15s;
-    flex-shrink: 0;
-  }
-  .resize-handle:hover { background: var(--accent); }
-
-  /* Empty state block count */
-  .block-count {
-    background: var(--accent);
-    color: #0a1520;
-    font-size: 10px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 10px;
-    min-width: 20px;
-    text-align: center;
-  }
-
-  /* Tooltip */
-  .has-tooltip { position: relative; }
-  .tooltip {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: #0a0e1a;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    padding: 4px 8px;
-    font-size: 10px;
-    white-space: nowrap;
-    color: var(--text);
-    z-index: 200;
-    pointer-events: none;
-  }
-  .has-tooltip:hover .tooltip { display: block; }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --bg: #0c1118;
+  --panel: #131b26;
+  --panel2: #182030;
+  --panel3: #1e293b;
+  --border: #243447;
+  --border2: #2d4060;
+  --text: #dde8f8;
+  --muted: #5a7a9a;
+  --accent: #38bdf8;
+  --accent2: #0ea5e9;
+  --grass: #4ade80;
+  --gold: #fbbf24;
+  --red: #f87171;
+  --purple: #c084fc;
+  --orange: #fb923c;
+  --teal: #2dd4bf;
+  --pink: #f472b6;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ─────────────────────────────── */
+header {
+  background: var(--panel);
+  border-bottom: 2px solid var(--border);
+  padding: 0 12px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+.logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(56,189,248,.5);
+  white-space: nowrap;
+}
+.logo em { color: var(--grass); font-style: normal; }
+
+.divider { width: 1px; height: 26px; background: var(--border); margin: 0 4px; }
+
+.tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .5px;
+}
+
+header .sp { flex: 1; }
+
+.hbtn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.hbtn:hover { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,.06); }
+.hbtn.prim { background: var(--accent); border-color: var(--accent); color: #060d14; }
+.hbtn.prim:hover { background: #7dd3fc; }
+.hbtn.success { border-color: var(--grass); color: var(--grass); }
+.hbtn.success:hover { background: rgba(74,222,128,.08); }
+
+/* ── LAYOUT ──────────────────────────────── */
+.app { display: flex; flex: 1; overflow: hidden; }
+
+/* ── PALETTE SIDEBAR ─────────────────────── */
+.sidebar {
+  width: 220px;
+  background: var(--panel);
+  border-right: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sb-head {
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sb-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.sb-search {
+  width: 100%;
+  background: var(--panel2);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 5px 9px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  outline: none;
+  transition: border-color .15s;
+}
+.sb-search:focus { border-color: var(--accent); }
+
+.sb-cats { overflow-y: auto; flex: 1; padding: 4px 0 10px; }
+.sb-cats::-webkit-scrollbar { width: 3px; }
+.sb-cats::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.cat-hdr {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 10px 3px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+.cat-hdr:hover { color: var(--text); }
+.cat-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+.cat-arrow { margin-left: auto; font-size: 8px; transition: transform .15s; }
+.cat-collapsed .cat-arrow { transform: rotate(-90deg); }
+
+.pal-block {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+  cursor: grab;
+  font-size: 11.5px;
+  font-weight: 700;
+  user-select: none;
+  transition: all .12s;
+  line-height: 1.2;
+}
+.pal-block:hover { transform: translateX(2px); filter: brightness(1.2); }
+.pal-block:active { cursor: grabbing; }
+
+.pal-icon {
+  width: 18px; height: 18px;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* ── CANVAS ──────────────────────────────── */
+.canvas-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.canvas-toolbar {
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--panel);
+}
+
+.canvas-toolbar .info { font-size: 11px; color: var(--muted); font-weight: 600; }
+.canvas-toolbar .cnt {
+  background: var(--accent); color: #060d14;
+  font-size: 10px; font-weight: 900;
+  padding: 2px 7px; border-radius: 10px; min-width: 22px; text-align: center;
+}
+
+.canvas-scroll { flex: 1; overflow-y: auto; padding: 16px; }
+.canvas-scroll::-webkit-scrollbar { width: 5px; }
+.canvas-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.drop-zone {
+  min-height: calc(100vh - 200px);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  transition: all .2s;
+  position: relative;
+}
+.drop-zone.dov { border-color: var(--accent); background: rgba(56,189,248,.03); }
+
+.empty-state {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  text-align: center; pointer-events: none;
+}
+.empty-state .big { font-size: 52px; margin-bottom: 12px; display: block; opacity: .25; }
+.empty-state p { color: var(--muted); font-size: 13px; font-weight: 700; }
+.empty-state small { color: var(--muted); font-size: 11px; opacity: .5; }
+
+/* ── SCRIPT BLOCKS ───────────────────────── */
+.sblock {
+  border-radius: 8px;
+  margin-bottom: 7px;
+  border: 2px solid transparent;
+  transition: box-shadow .15s, opacity .15s;
+  position: relative;
+}
+.sblock:hover { box-shadow: 0 0 0 1px rgba(255,255,255,.06); }
+.sblock.selected { box-shadow: 0 0 0 2px var(--accent) !important; }
+.sblock.drag-src { opacity: .35; }
+
+.bh {
+  padding: 7px 10px;
+  border-radius: 6px 6px 0 0;
+  display: flex; align-items: center; gap: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+.bh.no-body { border-radius: 6px; }
+
+.b-icon { font-size: 13px; flex-shrink: 0; }
+.b-label { font-weight: 800; font-size: 12px; flex: 1; }
+
+.b-btns { display: flex; gap: 3px; }
+.bb {
+  background: rgba(0,0,0,.25);
+  border: none;
+  color: rgba(255,255,255,.6);
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  transition: all .1s;
+}
+.bb:hover { background: rgba(0,0,0,.5); color: #fff; }
+.bb.del:hover { color: var(--red); }
+
+.bbody {
+  padding: 8px 10px;
+  border-radius: 0 0 6px 6px;
+  background: rgba(0,0,0,.22);
+  display: flex; flex-direction: column; gap: 7px;
+}
+
+.field-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.field-lbl { font-size: 10px; font-weight: 800; color: rgba(255,255,255,.5); white-space: nowrap; min-width: 58px; }
+.fi {
+  background: rgba(0,0,0,.3);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 5px;
+  color: #fff;
+  padding: 3px 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  outline: none;
+  transition: border-color .15s;
+  min-width: 70px;
+}
+.fi:focus { border-color: rgba(255,255,255,.35); }
+.fi.wide { flex: 1; min-width: 160px; }
+.fi.code { width: 100%; min-width: 200px; }
+.fsel {
+  background: rgba(0,0,0,.35);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 5px;
+  color: #fff;
+  padding: 3px 7px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+.fsel option { background: #1e293b; }
+.fta {
+  width: 100%;
+  background: rgba(0,0,0,.3);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 5px;
+  color: #fff;
+  padding: 5px 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  outline: none;
+  resize: vertical;
+  min-height: 52px;
+  transition: border-color .15s;
+}
+.fta:focus { border-color: rgba(255,255,255,.35); }
+
+/* nested */
+.nested-wrap { margin-left: 18px; border-left: 2.5px solid rgba(255,255,255,.08); padding-left: 10px; }
+
+.child-zone {
+  min-height: 34px;
+  border: 1.5px dashed rgba(255,255,255,.1);
+  border-radius: 6px;
+  padding: 5px;
+  transition: all .15s;
+  margin-top: 4px;
+}
+.child-zone.dov { border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.03); }
+.child-hint { text-align: center; color: rgba(255,255,255,.2); font-size: 10px; font-weight: 800; padding: 3px; pointer-events: none; }
+
+/* else zone */
+.else-label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,.3); padding: 4px 0 2px 2px; }
+
+/* ── CODE OUTPUT PANEL ───────────────────── */
+.code-panel {
+  width: 360px;
+  background: var(--panel);
+  border-left: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cp-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--panel2);
+  flex-shrink: 0;
+}
+.cp-title { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--accent); letter-spacing: 1px; }
+
+.lang-tabs { display: flex; gap: 3px; margin-left: auto; }
+.ltab {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px; font-weight: 800;
+  cursor: pointer;
+  transition: all .12s;
+}
+.ltab.active { background: var(--accent); border-color: var(--accent); color: #060d14; }
+.ltab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+.code-out {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.75;
+  white-space: pre;
+  color: #abb2bf;
+  tab-size: 2;
+}
+.code-out::-webkit-scrollbar { width: 4px; }
+.code-out::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* syntax */
+.kw { color: #c678dd; }
+.fn { color: #61afef; }
+.str { color: #98c379; }
+.num { color: #d19a66; }
+.cm { color: #5c6370; font-style: italic; }
+.ty { color: #e5c07b; }
+.ev { color: #56c8e8; }
+.op { color: #56b6c2; }
+.prop { color: #e06c75; }
+
+/* ── EXAMPLES MODAL ──────────────────────── */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--panel2);
+  border: 2px solid var(--border2);
+  border-radius: 12px;
+  width: 640px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-head h2 { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--accent); }
+.modal-head .close { margin-left: auto; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+.modal-head .close:hover { color: var(--text); }
+
+.modal-body { overflow-y: auto; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-body::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.example-card {
+  background: var(--panel3);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.example-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.example-card h3 { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+.example-card p { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.example-card .ex-tag {
+  display: inline-block;
+  font-size: 9px; font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+/* ── BLOCK THEMES ────────────────────────── */
+.t-event    { background:#0f1e35; border-color:#1d4ed8; } .t-event    .bh { background:#132043; } .t-event    .b-label { color:#60a5fa; }
+.t-system   { background:#0f2010; border-color:#15803d; } .t-system   .bh { background:#143018; } .t-system   .b-label { color:#4ade80; }
+.t-world    { background:#200f0f; border-color:#991b1b; } .t-world    .bh { background:#2d1414; } .t-world    .b-label { color:#f87171; }
+.t-entity   { background:#1c1400; border-color:#854d0e; } .t-entity   .bh { background:#2a1f00; } .t-entity   .b-label { color:#fbbf24; }
+.t-player   { background:#150d25; border-color:#6d28d9; } .t-player   .bh { background:#1d1232; } .t-player   .b-label { color:#c084fc; }
+.t-logic    { background:#0e1c1c; border-color:#0e7490; } .t-logic    .bh { background:#122828; } .t-logic    .b-label { color:#67e8f9; }
+.t-var      { background:#0a1c14; border-color:#065f46; } .t-var      .bh { background:#0e2a1a; } .t-var      .b-label { color:#34d399; }
+.t-output   { background:#1a0d22; border-color:#7c3aed; } .t-output   .bh { background:#240f32; } .t-output   .b-label { color:#c084fc; }
+.t-score    { background:#1c1000; border-color:#92400e; } .t-score    .bh { background:#2a1800; } .t-score    .b-label { color:#fb923c; }
+.t-dynprop  { background:#0f1520; border-color:#1e40af; } .t-dynprop  .bh { background:#131c2d; } .t-dynprop  .b-label { color:#93c5fd; }
+.t-inv      { background:#1a0f1a; border-color:#86198f; } .t-inv      .bh { background:#240e24; } .t-inv      .b-label { color:#e879f9; }
+.t-func     { background:#100f1a; border-color:#4338ca; } .t-func     .bh { background:#181630; } .t-func     .b-label { color:#818cf8; }
+.t-struct   { background:#121c10; border-color:#166534; } .t-struct   .bh { background:#182614; } .t-struct   .b-label { color:#86efac; }
+.t-form     { background:#1c1414; border-color:#9f1239; } .t-form     .bh { background:#2a1820; } .t-form     .b-label { color:#fb7185; }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 18px; right: 18px;
+  background: var(--panel2); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 9px 14px;
+  font-size: 12px; font-weight: 700; z-index: 9999;
+  animation: tIn .18s ease; display: flex; align-items: center; gap: 7px;
+}
+@keyframes tIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.toast.ok { border-color: var(--grass); color: var(--grass); }
+.toast.inf { border-color: var(--accent); color: var(--accent); }
+.toast.warn { border-color: var(--gold); color: var(--gold); }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
-  <div class="logo">⛏ Blockly<span>MC</span></div>
-  <div style="width:1px;height:28px;background:var(--border);margin:0 4px"></div>
-  <div style="font-size:11px;color:var(--muted);font-weight:600;">Bedrock API Script Builder</div>
-  <div class="spacer"></div>
-  <div id="blockCount" class="block-count">0</div>
-  <button class="header-btn" onclick="clearAll()">🗑 Clear</button>
-  <button class="header-btn" onclick="loadExample()">📦 Load Example</button>
-  <button class="header-btn primary" onclick="copyCode()">📋 Copy Code</button>
+  <div class="logo">⛏ MC<em>Script</em></div>
+  <div class="divider"></div>
+  <div class="tag">Bedrock Script API Builder</div>
+  <div class="sp"></div>
+  <div id="bcount" class="cnt" style="margin-right:6px">0</div>
+  <button class="hbtn" onclick="undo()">↩ Undo</button>
+  <button class="hbtn" onclick="clearAll()">🗑 Clear</button>
+  <button class="hbtn" onclick="openExamples()">📦 Examples</button>
+  <button class="hbtn success" onclick="exportScript()">💾 Export .ts</button>
+  <button class="hbtn prim" onclick="copyCode()">📋 Copy</button>
 </header>
 
-<div class="main">
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-title">🧱 Blocks</div>
-    <div class="sidebar-search">
-      <input type="text" id="blockSearch" placeholder="Search blocks..." oninput="filterBlocks(this.value)">
-    </div>
-    <div class="block-categories" id="blockPalette"></div>
+<div class="app">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-head">
+    <div class="sb-title">🧱 Block Palette</div>
+    <input class="sb-search" id="sbSearch" type="text" placeholder="Search blocks…" oninput="filterPalette(this.value)">
   </div>
+  <div class="sb-cats" id="palette"></div>
+</div>
 
-  <!-- CANVAS -->
-  <div class="canvas-area">
-    <div class="canvas-header">
-      <strong>Script Canvas</strong>
-      <span>— drag blocks from the left panel</span>
-    </div>
-    <div class="canvas-scroll">
-      <div class="drop-zone" id="mainDropZone">
-        <div class="drop-hint" id="dropHint">
-          <span class="icon">🧱</span>
-          <p>Drag blocks here to build your script</p>
-          <small>Start with an Event block, then add actions inside it</small>
-        </div>
+<!-- CANVAS -->
+<div class="canvas-wrap">
+  <div class="canvas-toolbar">
+    <span class="info">Script Canvas</span>
+    <span class="info">— drag & drop blocks</span>
+    <div class="sp"></div>
+    <button class="hbtn" style="font-size:11px;padding:4px 10px" onclick="collapseAll()">Collapse All</button>
+    <button class="hbtn" style="font-size:11px;padding:4px 10px" onclick="expandAll()">Expand All</button>
+  </div>
+  <div class="canvas-scroll">
+    <div class="drop-zone" id="dz">
+      <div class="empty-state" id="es">
+        <span class="big">🧱</span>
+        <p>Drag blocks to build your script</p>
+        <small>Start with an Event or Function block</small>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- CODE PANEL -->
-  <div class="code-panel">
-    <div class="code-panel-header">
-      <span class="code-panel-title">OUTPUT</span>
-      <div class="lang-tabs">
-        <button class="lang-tab active" onclick="setLang('ts', this)">TS</button>
-        <button class="lang-tab" onclick="setLang('js', this)">JS</button>
-      </div>
+<!-- CODE PANEL -->
+<div class="code-panel">
+  <div class="cp-header">
+    <span class="cp-title">GENERATED CODE</span>
+    <div class="lang-tabs">
+      <button class="ltab active" onclick="setLang('ts',this)">TS</button>
+      <button class="ltab" onclick="setLang('js',this)">JS</button>
     </div>
-    <div class="code-output" id="codeOutput"></div>
+  </div>
+  <div class="code-out" id="codeOut"></div>
+</div>
+</div>
+
+<!-- EXAMPLES MODAL -->
+<div class="modal-bg" id="exModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>📦 Example Scripts</h2>
+      <button class="close" onclick="closeExamples()">×</button>
+    </div>
+    <div class="modal-body" id="exCards"></div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  BLOCK DEFINITIONS
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 
-const BLOCK_DEFS = {
-  // EVENTS
-  world_beforeEvents_playerBreakBlock: {
-    cat: 'Events', label: '🔨 Before Player Breaks Block', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.beforeEvents.playerBreakBlock.subscribe((${h}) => {\n  // ${h}.block, ${h}.player, ${h}.cancel = true\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_playerBreakBlock: {
-    cat: 'Events', label: '🔨 After Player Breaks Block', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.playerBreakBlock.subscribe((${h}) => {\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_playerPlaceBlock: {
-    cat: 'Events', label: '🟫 After Player Places Block', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.playerPlaceBlock.subscribe((${h}) => {\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_chatSend: {
-    cat: 'Events', label: '💬 Chat Message Sent', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.chatSend.subscribe((${h}) => {\n  // ${h}.sender, ${h}.message\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_beforeEvents_chatSend: {
-    cat: 'Events', label: '💬 Before Chat Send (cancelable)', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.beforeEvents.chatSend.subscribe((${h}) => {\n  // ${h}.cancel = true to block\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_playerSpawn: {
-    cat: 'Events', label: '🌟 Player Spawns', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.playerSpawn.subscribe((${h}) => {\n  // ${h}.player, ${h}.initialSpawn\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_playerLeave: {
-    cat: 'Events', label: '🚪 Player Leaves', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.playerLeave.subscribe((${h}) => {\n  // ${h}.playerId, ${h}.playerName\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_entityHurt: {
-    cat: 'Events', label: '💢 Entity Hurt', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.entityHurt.subscribe((${h}) => {\n  // ${h}.hurtEntity, ${h}.damageSource, ${h}.damage\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_entityDie: {
-    cat: 'Events', label: '💀 Entity Dies', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.entityDie.subscribe((${h}) => {\n  // ${h}.deadEntity, ${h}.damageSource\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_itemUse: {
-    cat: 'Events', label: '⚡ Item Used', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.itemUse.subscribe((${h}) => {\n  // ${h}.source (player), ${h}.itemStack\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  world_afterEvents_explosion: {
-    cat: 'Events', label: '💥 Explosion', theme: 'event',
-    fields: [{ id: 'handlerName', label: 'Handler', type: 'text', default: 'ev' }],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const h = b.fields.handlerName || 'ev';
-      return `world.afterEvents.explosion.subscribe((${h}) => {\n  // ${h}.source, ${h}.dimension\n${childrenCode(b, lang, 2)}});`;
-    }
-  },
-  system_runInterval: {
-    cat: 'System', label: '🔁 Run Every N Ticks', theme: 'system',
-    fields: [
-      { id: 'ticks', label: 'Ticks', type: 'number', default: '20' }
-    ],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const t = b.fields.ticks || '20';
-      return `system.runInterval(() => {\n${childrenCode(b, lang, 2)}}, ${t});`;
-    }
-  },
-  system_runTimeout: {
-    cat: 'System', label: '⏰ Run After Delay', theme: 'system',
-    fields: [
-      { id: 'ticks', label: 'Ticks', type: 'number', default: '20' }
-    ],
-    hasChildren: true,
-    codeGen: (b, lang) => {
-      const t = b.fields.ticks || '20';
-      return `system.runTimeout(() => {\n${childrenCode(b, lang, 2)}}, ${t});`;
-    }
-  },
-  system_run: {
-    cat: 'System', label: '▶ Run Next Tick', theme: 'system',
-    fields: [],
-    hasChildren: true,
-    codeGen: (b, lang) => `system.run(() => {\n${childrenCode(b, lang, 2)}});`
-  },
-  system_clearRun: {
-    cat: 'System', label: '❌ Clear Interval/Timeout', theme: 'system',
-    fields: [{ id: 'runId', label: 'Run ID', type: 'text', default: 'runId' }],
-    hasChildren: false,
-    codeGen: (b) => `system.clearRun(${b.fields.runId || 'runId'});`
-  },
+const BD = {};
 
-  // WORLD
-  world_getDimension: {
-    cat: 'World', label: '🌍 Get Dimension', theme: 'world',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'dim' },
-      { id: 'dimId', label: 'Dimension', type: 'select', default: 'overworld', options: ['overworld','nether','the_end'] }
-    ],
-    hasChildren: false,
-    codeGen: (b, lang) => {
-      const t = lang === 'ts' ? ': Dimension' : '';
-      return `const ${b.fields.varName || 'dim'}${t} = world.getDimension("${b.fields.dimId || 'overworld'}");`;
-    }
-  },
-  world_getPlayers: {
-    cat: 'World', label: '👥 Get All Players', theme: 'world',
-    fields: [{ id: 'varName', label: 'Variable', type: 'text', default: 'players' }],
-    hasChildren: false,
-    codeGen: (b, lang) => {
-      const t = lang === 'ts' ? ': Player[]' : '';
-      return `const ${b.fields.varName || 'players'}${t} = world.getPlayers();`;
-    }
-  },
-  world_sendMessage: {
-    cat: 'World', label: '📢 Broadcast Message', theme: 'world',
-    fields: [{ id: 'msg', label: 'Message', type: 'text', default: 'Hello World!' }],
-    hasChildren: false,
-    codeGen: (b) => `world.sendMessage("${b.fields.msg || 'Hello World!'}");`
-  },
-  world_setTimeOfDay: {
-    cat: 'World', label: '🌙 Set Time of Day', theme: 'world',
-    fields: [{ id: 'time', label: 'Time', type: 'number', default: '6000' }],
-    hasChildren: false,
-    codeGen: (b) => `world.setTimeOfDay(${b.fields.time || '6000'});`
-  },
-  world_spawnEntity: {
-    cat: 'World', label: '🐔 Spawn Entity', theme: 'world',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'entity' },
-      { id: 'entityType', label: 'Type', type: 'text', default: 'minecraft:zombie' },
-      { id: 'location', label: 'Location', type: 'text', default: '{x:0,y:64,z:0}' },
-      { id: 'dim', label: 'Dimension var', type: 'text', default: 'dim' }
-    ],
-    hasChildren: false,
-    codeGen: (b, lang) => {
-      const t = lang === 'ts' ? ': Entity' : '';
-      return `const ${b.fields.varName || 'entity'}${t} = ${b.fields.dim || 'dim'}.spawnEntity("${b.fields.entityType || 'minecraft:zombie'}", ${b.fields.location || '{x:0,y:64,z:0}'});`;
-    }
-  },
-  world_runCommand: {
-    cat: 'World', label: '⌨ Run Command (Dimension)', theme: 'world',
-    fields: [
-      { id: 'dim', label: 'Dimension var', type: 'text', default: 'dim' },
-      { id: 'cmd', label: 'Command', type: 'text', default: 'say Hello!' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.dim || 'dim'}.runCommand("${b.fields.cmd || 'say Hello!'}");`
-  },
-  world_setBlock: {
-    cat: 'World', label: '🧱 Set Block', theme: 'world',
-    fields: [
-      { id: 'dim', label: 'Dimension', type: 'text', default: 'dim' },
-      { id: 'x', label: 'X', type: 'number', default: '0' },
-      { id: 'y', label: 'Y', type: 'number', default: '64' },
-      { id: 'z', label: 'Z', type: 'number', default: '0' },
-      { id: 'blockId', label: 'Block ID', type: 'text', default: 'minecraft:diamond_block' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.dim || 'dim'}.setBlock({ x: ${b.fields.x||0}, y: ${b.fields.y||64}, z: ${b.fields.z||0} }, "${b.fields.blockId || 'minecraft:diamond_block'}");`
-  },
+// helper
+function def(id, cat, label, theme, fields, hasChildren, gen, hasElse) {
+  BD[id] = { cat, label, theme, fields, hasChildren, gen, hasElse: hasElse||false };
+}
 
-  // ENTITY
-  entity_runCommand: {
-    cat: 'Entity', label: '⌨ Entity Run Command', theme: 'entity',
-    fields: [
-      { id: 'entity', label: 'Entity var', type: 'text', default: 'entity' },
-      { id: 'cmd', label: 'Command', type: 'text', default: 'kill @s' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.entity || 'entity'}.runCommand("${b.fields.cmd || 'kill @s'}");`
-  },
-  entity_applyDamage: {
-    cat: 'Entity', label: '💔 Apply Damage', theme: 'entity',
-    fields: [
-      { id: 'entity', label: 'Entity var', type: 'text', default: 'entity' },
-      { id: 'amount', label: 'Amount', type: 'number', default: '5' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.entity || 'entity'}.applyDamage(${b.fields.amount || '5'});`
-  },
-  entity_addEffect: {
-    cat: 'Entity', label: '✨ Add Effect', theme: 'entity',
-    fields: [
-      { id: 'entity', label: 'Entity var', type: 'text', default: 'entity' },
-      { id: 'effect', label: 'Effect', type: 'text', default: 'speed' },
-      { id: 'duration', label: 'Duration (ticks)', type: 'number', default: '200' },
-      { id: 'amplifier', label: 'Level', type: 'number', default: '1' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.entity || 'entity'}.addEffect("${b.fields.effect || 'speed'}", ${b.fields.duration || '200'}, { amplifier: ${b.fields.amplifier || '1'} });`
-  },
-  entity_teleport: {
-    cat: 'Entity', label: '🌀 Teleport', theme: 'entity',
-    fields: [
-      { id: 'entity', label: 'Entity var', type: 'text', default: 'entity' },
-      { id: 'x', label: 'X', type: 'number', default: '0' },
-      { id: 'y', label: 'Y', type: 'number', default: '64' },
-      { id: 'z', label: 'Z', type: 'number', default: '0' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.entity || 'entity'}.teleport({ x: ${b.fields.x||0}, y: ${b.fields.y||64}, z: ${b.fields.z||0} });`
-  },
-  entity_setProperty: {
-    cat: 'Entity', label: '🔧 Set Entity Property', theme: 'entity',
-    fields: [
-      { id: 'entity', label: 'Entity var', type: 'text', default: 'entity' },
-      { id: 'prop', label: 'Property', type: 'text', default: 'mypack:myProperty' },
-      { id: 'value', label: 'Value', type: 'text', default: 'true' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.entity || 'entity'}.setProperty("${b.fields.prop || 'mypack:myProperty'}", ${b.fields.value || 'true'});`
-  },
-  entity_hasComponent: {
-    cat: 'Entity', label: '🔍 Check Entity Component', theme: 'entity',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'hasComp' },
-      { id: 'entity', label: 'Entity var', type: 'text', default: 'entity' },
-      { id: 'comp', label: 'Component', type: 'text', default: 'minecraft:health' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `const ${b.fields.varName || 'hasComp'} = ${b.fields.entity || 'entity'}.hasComponent("${b.fields.comp || 'minecraft:health'}");`
-  },
+// ── EVENTS ──────────────────────────────────────────────
 
-  // PLAYER
-  player_sendMessage: {
-    cat: 'Player', label: '💌 Send Player Message', theme: 'player',
-    fields: [
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' },
-      { id: 'msg', label: 'Message', type: 'text', default: 'Welcome!' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.player || 'player'}.sendMessage("${b.fields.msg || 'Welcome!'}");`
-  },
-  player_runCommand: {
-    cat: 'Player', label: '⌨ Player Run Command', theme: 'player',
-    fields: [
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' },
-      { id: 'cmd', label: 'Command', type: 'text', default: 'effect @s speed 100 1' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.player || 'player'}.runCommand("${b.fields.cmd || 'effect @s speed 100 1'}");`
-  },
-  player_getName: {
-    cat: 'Player', label: '🏷 Get Player Name', theme: 'player',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'name' },
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' }
-    ],
-    hasChildren: false,
-    codeGen: (b, lang) => {
-      const t = lang === 'ts' ? ': string' : '';
-      return `const ${b.fields.varName || 'name'}${t} = ${b.fields.player || 'player'}.name;`;
-    }
-  },
-  player_getLocation: {
-    cat: 'Player', label: '📍 Get Player Location', theme: 'player',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'loc' },
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' }
-    ],
-    hasChildren: false,
-    codeGen: (b, lang) => {
-      const t = lang === 'ts' ? ': Vector3' : '';
-      return `const ${b.fields.varName || 'loc'}${t} = ${b.fields.player || 'player'}.location;`;
-    }
-  },
-  player_addTag: {
-    cat: 'Player', label: '🏷 Add Tag to Player', theme: 'player',
-    fields: [
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' },
-      { id: 'tag', label: 'Tag', type: 'text', default: 'myTag' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.player || 'player'}.addTag("${b.fields.tag || 'myTag'}");`
-  },
-  player_hasTag: {
-    cat: 'Player', label: '🔍 Player Has Tag?', theme: 'player',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'result' },
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' },
-      { id: 'tag', label: 'Tag', type: 'text', default: 'myTag' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `const ${b.fields.varName || 'result'} = ${b.fields.player || 'player'}.hasTag("${b.fields.tag || 'myTag'}");`
-  },
-  player_getScore: {
-    cat: 'Player', label: '🏆 Get Scoreboard Score', theme: 'player',
-    fields: [
-      { id: 'varName', label: 'Variable', type: 'text', default: 'score' },
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' },
-      { id: 'objective', label: 'Objective', type: 'text', default: 'kills' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `const ${b.fields.varName || 'score'} = world.scoreboard.getObjective("${b.fields.objective || 'kills'}")?.getScore(${b.fields.player || 'player'});`
-  },
-  player_setGameMode: {
-    cat: 'Player', label: '🎮 Set Game Mode', theme: 'player',
-    fields: [
-      { id: 'player', label: 'Player var', type: 'text', default: 'player' },
-      { id: 'mode', label: 'Mode', type: 'select', default: 'survival', options: ['survival','creative','adventure','spectator'] }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.player || 'player'}.setGameMode(GameMode.${b.fields.mode || 'survival'});`
-  },
+def('ev_playerBreakBefore','Events','🔨 Before Player Breaks Block','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.beforeEvents.playerBreakBlock.subscribe((${b.h||'ev'}) => {\n  // .block .player .cancel=true\n${CC(b,l,2)}});`);
 
-  // LOGIC
-  if_block: {
-    cat: 'Logic', label: '❓ If Condition', theme: 'logic',
-    fields: [{ id: 'condition', label: 'Condition', type: 'text', default: 'player.hasTag("admin")' }],
-    hasChildren: true,
-    codeGen: (b, lang) => `if (${b.fields.condition || 'true'}) {\n${childrenCode(b, lang, 2)}}`
-  },
-  for_players: {
-    cat: 'Logic', label: '🔄 For Each Player', theme: 'logic',
-    fields: [
-      { id: 'playerVar', label: 'Variable', type: 'text', default: 'player' },
-      { id: 'playersVar', label: 'Players array', type: 'text', default: 'players' }
-    ],
-    hasChildren: true,
-    codeGen: (b, lang) => `for (const ${b.fields.playerVar || 'player'} of ${b.fields.playersVar || 'players'}) {\n${childrenCode(b, lang, 2)}}`
-  },
-  try_catch: {
-    cat: 'Logic', label: '🛡 Try / Catch', theme: 'logic',
-    fields: [{ id: 'errVar', label: 'Error var', type: 'text', default: 'err' }],
-    hasChildren: true,
-    codeGen: (b, lang) => `try {\n${childrenCode(b, lang, 2)}} catch (${b.fields.errVar || 'err'}) {\n  console.error(${b.fields.errVar || 'err'});\n}`
-  },
+def('ev_playerBreakAfter','Events','🔨 After Player Breaks Block','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.playerBreakBlock.subscribe((${b.h||'ev'}) => {\n${CC(b,l,2)}});`);
 
-  // VARIABLES
-  const_var: {
-    cat: 'Variables', label: '📦 Declare Const', theme: 'variable',
-    fields: [
-      { id: 'name', label: 'Name', type: 'text', default: 'myVar' },
-      { id: 'value', label: 'Value', type: 'text', default: '"hello"' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `const ${b.fields.name || 'myVar'} = ${b.fields.value || '"hello"'};`
-  },
-  let_var: {
-    cat: 'Variables', label: '📝 Declare Let', theme: 'variable',
-    fields: [
-      { id: 'name', label: 'Name', type: 'text', default: 'counter' },
-      { id: 'value', label: 'Value', type: 'text', default: '0' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `let ${b.fields.name || 'counter'} = ${b.fields.value || '0'};`
-  },
-  assign_var: {
-    cat: 'Variables', label: '✏ Assign Variable', theme: 'variable',
-    fields: [
-      { id: 'name', label: 'Name', type: 'text', default: 'counter' },
-      { id: 'value', label: 'Value', type: 'text', default: 'counter + 1' }
-    ],
-    hasChildren: false,
-    codeGen: (b) => `${b.fields.name || 'counter'} = ${b.fields.value || 'counter + 1'};`
-  },
+def('ev_playerPlaceAfter','Events','🟫 After Player Places Block','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.playerPlaceBlock.subscribe((${b.h||'ev'}) => {\n${CC(b,l,2)}});`);
 
-  // OUTPUT
-  console_log: {
-    cat: 'Output', label: '📋 Console Log', theme: 'output',
-    fields: [{ id: 'msg', label: 'Message', type: 'text', default: '"debug info"' }],
-    hasChildren: false,
-    codeGen: (b) => `console.log(${b.fields.msg || '"debug info"'});`
-  },
-  console_warn: {
-    cat: 'Output', label: '⚠ Console Warn', theme: 'output',
-    fields: [{ id: 'msg', label: 'Message', type: 'text', default: '"warning!"' }],
-    hasChildren: false,
-    codeGen: (b) => `console.warn(${b.fields.msg || '"warning!"'});`
-  },
-  comment: {
-    cat: 'Output', label: '💭 Comment', theme: 'output',
-    fields: [{ id: 'text', label: 'Text', type: 'text', default: 'My comment here' }],
-    hasChildren: false,
-    codeGen: (b) => `// ${b.fields.text || 'comment'}`
-  },
-  raw_code: {
-    cat: 'Output', label: '⚙ Raw Code', theme: 'output',
-    fields: [{ id: 'code', label: 'Code', type: 'textarea', default: '// custom code here' }],
-    hasChildren: false,
-    codeGen: (b) => b.fields.code || '// custom code here'
-  }
-};
+def('ev_chatSendAfter','Events','💬 Chat Message Sent','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.chatSend.subscribe((${b.h||'ev'}) => {\n  // .sender .message\n${CC(b,l,2)}});`);
 
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
+def('ev_chatSendBefore','Events','💬 Before Chat Send (cancelable)','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.beforeEvents.chatSend.subscribe((${b.h||'ev'}) => {\n  // .cancel=true to block\n${CC(b,l,2)}});`);
 
-let blocks = []; // top-level blocks on canvas
-let selectedBlockId = null;
-let currentLang = 'ts';
-let blockIdCounter = 1;
-let dragSource = null; // { type: 'palette'|'canvas', blockType, blockId }
+def('ev_playerSpawn','Events','🌟 Player Spawns','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.playerSpawn.subscribe((${b.h||'ev'}) => {\n  // .player .initialSpawn\n${CC(b,l,2)}});`);
 
-// ══════════════════════════════════════════
-//  BLOCK FACTORY
-// ══════════════════════════════════════════
+def('ev_playerLeave','Events','🚪 Player Leaves','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.playerLeave.subscribe((${b.h||'ev'}) => {\n  // .playerId .playerName\n${CC(b,l,2)}});`);
 
-function createBlock(type) {
-  const def = BLOCK_DEFS[type];
-  if (!def) return null;
+def('ev_entityHurt','Events','💢 Entity Hurt','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.entityHurt.subscribe((${b.h||'ev'}) => {\n  // .hurtEntity .damageSource .damage\n${CC(b,l,2)}});`);
+
+def('ev_entityDie','Events','💀 Entity Dies','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.entityDie.subscribe((${b.h||'ev'}) => {\n  // .deadEntity .damageSource\n${CC(b,l,2)}});`);
+
+def('ev_itemUse','Events','⚡ Item Used','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.itemUse.subscribe((${b.h||'ev'}) => {\n  // .source .itemStack\n${CC(b,l,2)}});`);
+
+def('ev_itemUseOn','Events','🎯 Item Used On Block','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.itemUseOn.subscribe((${b.h||'ev'}) => {\n  // .source .itemStack .block\n${CC(b,l,2)}});`);
+
+def('ev_explosion','Events','💥 Explosion','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.explosion.subscribe((${b.h||'ev'}) => {\n  // .source .dimension\n${CC(b,l,2)}});`);
+
+def('ev_pistonActivate','Events','⚙ Piston Activates','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.pistonActivate.subscribe((${b.h||'ev'}) => {\n  // .piston .dimension\n${CC(b,l,2)}});`);
+
+def('ev_buttonPush','Events','🔘 Button Pushed','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.buttonPush.subscribe((${b.h||'ev'}) => {\n  // .block .dimension .source\n${CC(b,l,2)}});`);
+
+def('ev_leverAction','Events','🔀 Lever Toggled','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.leverAction.subscribe((${b.h||'ev'}) => {\n  // .block .isPowered .dimension\n${CC(b,l,2)}});`);
+
+def('ev_pressurePlate','Events','🔲 Pressure Plate Stepped','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.pressurePlatePush.subscribe((${b.h||'ev'}) => {\n  // .block .dimension .source\n${CC(b,l,2)}});`);
+
+def('ev_targetHit','Events','🎯 Target Block Hit','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.targetBlockHit.subscribe((${b.h||'ev'}) => {\n  // .hitVector .source .block\n${CC(b,l,2)}});`);
+
+def('ev_weatherChange','Events','🌧 Weather Changes','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.weatherChange.subscribe((${b.h||'ev'}) => {\n  // .lightning .raining .dimension\n${CC(b,l,2)}});`);
+
+def('ev_worldLoad','Events','🌍 World Loads','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'}],true,
+  (b,l)=>`world.afterEvents.worldInitialize.subscribe((${b.h||'ev'}) => {\n${CC(b,l,2)}});`);
+
+def('ev_beforeDataDriven','Events','📡 Before Data Driven Event','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'},{id:'entityType',lbl:'Entity Type',t:'text',def:'minecraft:creeper'}],true,
+  (b,l)=>`world.beforeEvents.dataDrivenEntityTrigger.subscribe((${b.h||'ev'}) => {\n${CC(b,l,2)}},{ entityTypes: ["${b.entityType||'minecraft:creeper'}"] });`);
+
+def('ev_afterDataDriven','Events','📡 After Data Driven Event','event',
+  [{id:'h',lbl:'Handler',t:'text',def:'ev'},{id:'entityType',lbl:'Entity Type',t:'text',def:'minecraft:creeper'}],true,
+  (b,l)=>`world.afterEvents.dataDrivenEntityTrigger.subscribe((${b.h||'ev'}) => {\n${CC(b,l,2)}},{ entityTypes: ["${b.entityType||'minecraft:creeper'}"] });`);
+
+// ── SYSTEM ────────────────────────────────────────────────
+
+def('sys_runInterval','System','🔁 Run Every N Ticks','system',
+  [{id:'ticks',lbl:'Ticks',t:'num',def:'20'},{id:'id',lbl:'ID var',t:'text',def:'loopId'}],true,
+  (b,l)=>{const t=l==='ts'?`: number`:``; return `const ${b.id||'loopId'}${t} = system.runInterval(() => {\n${CC(b,l,2)}}, ${b.ticks||'20'});`});
+
+def('sys_runTimeout','System','⏰ Run After Delay','system',
+  [{id:'ticks',lbl:'Ticks',t:'num',def:'20'},{id:'id',lbl:'ID var',t:'text',def:'timeoutId'}],true,
+  (b,l)=>{const t=l==='ts'?`: number`:``; return `const ${b.id||'timeoutId'}${t} = system.runTimeout(() => {\n${CC(b,l,2)}}, ${b.ticks||'20'});`});
+
+def('sys_run','System','▶ Run Next Tick','system',
+  [],true,
+  (b,l)=>`system.run(() => {\n${CC(b,l,2)}});`);
+
+def('sys_clearRun','System','❌ Clear Interval / Timeout','system',
+  [{id:'rid',lbl:'ID var',t:'text',def:'loopId'}],false,
+  (b)=>`system.clearRun(${b.rid||'loopId'});`);
+
+def('sys_currentTick','System','🕐 Get Current Tick','system',
+  [{id:'v',lbl:'Variable',t:'text',def:'tick'}],false,
+  (b,l)=>{const t=l==='ts'?`: number`:``; return `const ${b.v||'tick'}${t} = system.currentTick;`});
+
+// ── WORLD ─────────────────────────────────────────────────
+
+def('w_getDim','World','🌍 Get Dimension','world',
+  [{id:'v',lbl:'Variable',t:'text',def:'dim'},{id:'d',lbl:'Dimension',t:'sel',def:'overworld',opts:['overworld','nether','the_end']}],false,
+  (b,l)=>{const t=l==='ts'?`: Dimension`:``; return `const ${b.v||'dim'}${t} = world.getDimension("${b.d||'overworld'}");`});
+
+def('w_getPlayers','World','👥 Get All Players','world',
+  [{id:'v',lbl:'Variable',t:'text',def:'players'}],false,
+  (b,l)=>{const t=l==='ts'?`: Player[]`:``; return `const ${b.v||'players'}${t} = world.getPlayers();`});
+
+def('w_getPlayersFilter','World','🔍 Get Players (Filtered)','world',
+  [{id:'v',lbl:'Variable',t:'text',def:'filtered'},{id:'name',lbl:'Name filter',t:'text',def:''},{id:'tags',lbl:'Has tag',t:'text',def:''}],false,
+  (b,l)=>{
+    const t=l==='ts'?`: Player[]`:``;
+    const opts=[];
+    if(b.name) opts.push(`name:"${b.name}"`);
+    if(b.tags) opts.push(`tags:["${b.tags}"]`);
+    return `const ${b.v||'filtered'}${t} = world.getPlayers(${opts.length?`{${opts.join(',')}}`:''}); `;
+  });
+
+def('w_broadcast','World','📢 Broadcast Message','world',
+  [{id:'msg',lbl:'Message',t:'text',def:'Hello World!'}],false,
+  (b)=>`world.sendMessage("${b.msg||'Hello World!'}");`);
+
+def('w_broadcastVar','World','📢 Broadcast Variable','world',
+  [{id:'v',lbl:'Variable/expr',t:'text',def:'message'}],false,
+  (b)=>`world.sendMessage(${b.v||'message'});`);
+
+def('w_setTime','World','🌙 Set Time of Day','world',
+  [{id:'time',lbl:'Time (0-24000)',t:'num',def:'6000'}],false,
+  (b)=>`world.setTimeOfDay(${b.time||'6000'});`);
+
+def('w_setWeather','World','🌧 Set Weather','world',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'type',lbl:'Type',t:'sel',def:'clear',opts:['clear','rain','thunder']}],false,
+  (b)=>`${b.dim||'dim'}.setWeather(WeatherType.${b.type||'clear'});`);
+
+def('w_spawnEntity','World','🐔 Spawn Entity','world',
+  [{id:'v',lbl:'Variable',t:'text',def:'spawned'},{id:'type',lbl:'Entity Type',t:'text',def:'minecraft:zombie'},{id:'loc',lbl:'Location',t:'text',def:'{x:0,y:64,z:0}'},{id:'dim',lbl:'Dimension',t:'text',def:'dim'}],false,
+  (b,l)=>{const t=l==='ts'?`: Entity`:``; return `const ${b.v||'spawned'}${t} = ${b.dim||'dim'}.spawnEntity("${b.type||'minecraft:zombie'}", ${b.loc||'{x:0,y:64,z:0}'});`});
+
+def('w_spawnItem','World','🎁 Spawn Item','world',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'item',lbl:'Item type',t:'text',def:'minecraft:diamond'},{id:'count',lbl:'Count',t:'num',def:'1'},{id:'loc',lbl:'Location',t:'text',def:'{x:0,y:64,z:0}'}],false,
+  (b)=>`${b.dim||'dim'}.spawnItem(new ItemStack("${b.item||'minecraft:diamond'}", ${b.count||1}), ${b.loc||'{x:0,y:64,z:0}'});`);
+
+def('w_dimRunCmd','World','⌨ Run Command (Dimension)','world',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'cmd',lbl:'Command',t:'text',def:'say Hello!'}],false,
+  (b)=>`${b.dim||'dim'}.runCommand("${b.cmd||'say Hello!'}");`);
+
+def('w_setBlock','World','🧱 Set Block','world',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'x',lbl:'X',t:'num',def:'0'},{id:'y',lbl:'Y',t:'num',def:'64'},{id:'z',lbl:'Z',t:'num',def:'0'},{id:'bid',lbl:'Block ID',t:'text',def:'minecraft:diamond_block'}],false,
+  (b)=>`${b.dim||'dim'}.setBlock({ x:${b.x||0}, y:${b.y||64}, z:${b.z||0} }, "${b.bid||'minecraft:diamond_block'}");`);
+
+def('w_getBlock','World','🧱 Get Block','world',
+  [{id:'v',lbl:'Variable',t:'text',def:'block'},{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'x',lbl:'X',t:'num',def:'0'},{id:'y',lbl:'Y',t:'num',def:'64'},{id:'z',lbl:'Z',t:'num',def:'0'}],false,
+  (b,l)=>{const t=l==='ts'?`: Block | undefined`:``; return `const ${b.v||'block'}${t} = ${b.dim||'dim'}.getBlock({ x:${b.x||0}, y:${b.y||64}, z:${b.z||0} });`});
+
+def('w_fillBlocks','World','🪣 Fill Blocks','world',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'x1',lbl:'X1',t:'num',def:'0'},{id:'y1',lbl:'Y1',t:'num',def:'64'},{id:'z1',lbl:'Z1',t:'num',def:'0'},{id:'x2',lbl:'X2',t:'num',def:'10'},{id:'y2',lbl:'Y2',t:'num',def:'64'},{id:'z2',lbl:'Z2',t:'num',def:'10'},{id:'bid',lbl:'Block ID',t:'text',def:'minecraft:stone'}],false,
+  (b)=>`${b.dim||'dim'}.fillBlocks({ x:${b.x1||0},y:${b.y1||64},z:${b.z1||0} }, { x:${b.x2||10},y:${b.y2||64},z:${b.z2||10} }, "${b.bid||'minecraft:stone'}");`);
+
+def('w_runCommandAsync','World','⌨ Run Command Async','world',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'cmd',lbl:'Command',t:'text',def:'say Hello!'},{id:'v',lbl:'Result var',t:'text',def:'result'}],false,
+  (b)=>`const ${b.v||'result'} = await ${b.dim||'dim'}.runCommandAsync("${b.cmd||'say Hello!'}");`);
+
+def('w_getEntities','World','🐢 Get Entities','world',
+  [{id:'v',lbl:'Variable',t:'text',def:'entities'},{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'type',lbl:'Entity type filter',t:'text',def:'minecraft:zombie'}],false,
+  (b,l)=>{const t=l==='ts'?`: Entity[]`:``; return `const ${b.v||'entities'}${t} = ${b.dim||'dim'}.getEntities({ type:"${b.type||'minecraft:zombie'}" });`});
+
+// ── ENTITY ────────────────────────────────────────────────
+
+def('ent_runCmd','Entity','⌨ Entity Run Command','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'cmd',lbl:'Command',t:'text',def:'kill @s'}],false,
+  (b)=>`${b.e||'entity'}.runCommand("${b.cmd||'kill @s'}");`);
+
+def('ent_applyDmg','Entity','💔 Apply Damage','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'amt',lbl:'Amount',t:'num',def:'5'},{id:'cause',lbl:'Cause',t:'text',def:''}],false,
+  (b)=>`${b.e||'entity'}.applyDamage(${b.amt||5}${b.cause?`, { cause: EntityDamageCause.${b.cause} }`:''});`);
+
+def('ent_applyImpulse','Entity','💨 Apply Impulse','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'x',lbl:'X',t:'num',def:'0'},{id:'y',lbl:'Y',t:'num',def:'1'},{id:'z',lbl:'Z',t:'num',def:'0'}],false,
+  (b)=>`${b.e||'entity'}.applyImpulse({ x:${b.x||0}, y:${b.y||1}, z:${b.z||0} });`);
+
+def('ent_addEffect','Entity','✨ Add Effect','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'eff',lbl:'Effect',t:'text',def:'speed'},{id:'dur',lbl:'Duration',t:'num',def:'200'},{id:'amp',lbl:'Level',t:'num',def:'1'},{id:'show',lbl:'Show particles',t:'sel',def:'true',opts:['true','false']}],false,
+  (b)=>`${b.e||'entity'}.addEffect("${b.eff||'speed'}", ${b.dur||200}, { amplifier:${b.amp||1}, showParticles:${b.show||'true'} });`);
+
+def('ent_removeEffect','Entity','🚫 Remove Effect','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'eff',lbl:'Effect',t:'text',def:'speed'}],false,
+  (b)=>`${b.e||'entity'}.removeEffect("${b.eff||'speed'}");`);
+
+def('ent_teleport','Entity','🌀 Teleport','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'x',lbl:'X',t:'num',def:'0'},{id:'y',lbl:'Y',t:'num',def:'64'},{id:'z',lbl:'Z',t:'num',def:'0'}],false,
+  (b)=>`${b.e||'entity'}.teleport({ x:${b.x||0}, y:${b.y||64}, z:${b.z||0} });`);
+
+def('ent_teleportFacing','Entity','🌀 Teleport Facing','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'x',lbl:'X',t:'num',def:'0'},{id:'y',lbl:'Y',t:'num',def:'64'},{id:'z',lbl:'Z',t:'num',def:'0'},{id:'rx',lbl:'FaceX',t:'num',def:'0'},{id:'ry',lbl:'FaceY',t:'num',def:'0'},{id:'rz',lbl:'FaceZ',t:'num',def:'0'}],false,
+  (b)=>`${b.e||'entity'}.teleport({ x:${b.x||0}, y:${b.y||64}, z:${b.z||0} }, { facingLocation:{ x:${b.rx||0}, y:${b.ry||0}, z:${b.rz||0} } });`);
+
+def('ent_kill','Entity','☠ Kill Entity','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'}],false,
+  (b)=>`${b.e||'entity'}.kill();`);
+
+def('ent_addTag','Entity','🏷 Add Tag','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'tag',lbl:'Tag',t:'text',def:'myTag'}],false,
+  (b)=>`${b.e||'entity'}.addTag("${b.tag||'myTag'}");`);
+
+def('ent_hasTag','Entity','🔍 Has Tag?','entity',
+  [{id:'v',lbl:'Variable',t:'text',def:'result'},{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'tag',lbl:'Tag',t:'text',def:'myTag'}],false,
+  (b)=>`const ${b.v||'result'} = ${b.e||'entity'}.hasTag("${b.tag||'myTag'}");`);
+
+def('ent_removeTag','Entity','🗑 Remove Tag','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'tag',lbl:'Tag',t:'text',def:'myTag'}],false,
+  (b)=>`${b.e||'entity'}.removeTag("${b.tag||'myTag'}");`);
+
+def('ent_setProperty','Entity','🔧 Set Entity Property','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'prop',lbl:'Property',t:'text',def:'mypack:myProp'},{id:'val',lbl:'Value',t:'text',def:'true'}],false,
+  (b)=>`${b.e||'entity'}.setProperty("${b.prop||'mypack:myProp'}", ${b.val||'true'});`);
+
+def('ent_getComponent','Entity','⚙ Get Component','entity',
+  [{id:'v',lbl:'Variable',t:'text',def:'comp'},{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'comp',lbl:'Component',t:'text',def:'minecraft:health'}],false,
+  (b)=>`const ${b.v||'comp'} = ${b.e||'entity'}.getComponent("${b.comp||'minecraft:health'}");`);
+
+def('ent_triggerEvent','Entity','📡 Trigger Entity Event','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'evt',lbl:'Event',t:'text',def:'mypack:my_event'}],false,
+  (b)=>`${b.e||'entity'}.triggerEvent("${b.evt||'mypack:my_event'}");`);
+
+def('ent_playAnimation','Entity','🎬 Play Animation','entity',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'anim',lbl:'Animation',t:'text',def:'animation.myEntity.walk'}],false,
+  (b)=>`${b.e||'entity'}.playAnimation("${b.anim||'animation.myEntity.walk'}");`);
+
+def('ent_isValid','Entity','✅ Entity Is Valid?','entity',
+  [{id:'v',lbl:'Variable',t:'text',def:'valid'},{id:'e',lbl:'Entity',t:'text',def:'entity'}],false,
+  (b)=>`const ${b.v||'valid'} = ${b.e||'entity'}.isValid();`);
+
+// ── PLAYER ────────────────────────────────────────────────
+
+def('p_sendMsg','Player','💌 Send Player Message','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'msg',lbl:'Message',t:'text',def:'Hello!'}],false,
+  (b)=>`${b.p||'player'}.sendMessage("${b.msg||'Hello!'}");`);
+
+def('p_sendMsgVar','Player','💌 Send Variable Message','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'v',lbl:'Variable/expr',t:'text',def:'message'}],false,
+  (b)=>`${b.p||'player'}.sendMessage(${b.v||'message'});`);
+
+def('p_runCmd','Player','⌨ Player Run Command','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'cmd',lbl:'Command',t:'text',def:'effect @s speed 100 1'}],false,
+  (b)=>`${b.p||'player'}.runCommand("${b.cmd||'effect @s speed 100 1'}");`);
+
+def('p_getName','Player','🏷 Get Name','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'name'},{id:'p',lbl:'Player',t:'text',def:'player'}],false,
+  (b,l)=>{const t=l==='ts'?`: string`:``; return `const ${b.v||'name'}${t} = ${b.p||'player'}.name;`});
+
+def('p_getLocation','Player','📍 Get Location','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'loc'},{id:'p',lbl:'Player',t:'text',def:'player'}],false,
+  (b,l)=>{const t=l==='ts'?`: Vector3`:``; return `const ${b.v||'loc'}${t} = ${b.p||'player'}.location;`});
+
+def('p_addTag','Player','🏷 Add Tag','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'tag',lbl:'Tag',t:'text',def:'myTag'}],false,
+  (b)=>`${b.p||'player'}.addTag("${b.tag||'myTag'}");`);
+
+def('p_hasTag','Player','🔍 Has Tag?','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'result'},{id:'p',lbl:'Player',t:'text',def:'player'},{id:'tag',lbl:'Tag',t:'text',def:'myTag'}],false,
+  (b)=>`const ${b.v||'result'} = ${b.p||'player'}.hasTag("${b.tag||'myTag'}");`);
+
+def('p_removeTag','Player','🗑 Remove Tag','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'tag',lbl:'Tag',t:'text',def:'myTag'}],false,
+  (b)=>`${b.p||'player'}.removeTag("${b.tag||'myTag'}");`);
+
+def('p_setGameMode','Player','🎮 Set Game Mode','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'mode',lbl:'Mode',t:'sel',def:'survival',opts:['survival','creative','adventure','spectator']}],false,
+  (b)=>`${b.p||'player'}.setGameMode(GameMode.${b.mode||'survival'});`);
+
+def('p_playSound','Player','🔊 Play Sound','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'sound',lbl:'Sound ID',t:'text',def:'random.levelup'},{id:'vol',lbl:'Volume',t:'num',def:'1'},{id:'pitch',lbl:'Pitch',t:'num',def:'1'}],false,
+  (b)=>`${b.p||'player'}.playSound("${b.sound||'random.levelup'}", { volume:${b.vol||1}, pitch:${b.pitch||1} });`);
+
+def('p_camera','Player','🎥 Set Camera (Fade)','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'r',lbl:'Red',t:'num',def:'0'},{id:'g',lbl:'Green',t:'num',def:'0'},{id:'b2',lbl:'Blue',t:'num',def:'0'},{id:'dur',lbl:'Fade seconds',t:'num',def:'1'}],false,
+  (b)=>`${b.p||'player'}.camera.fade({ fadeColor:{ red:${b.r||0}, green:${b.g||0}, blue:${b.b2||0} }, fadeTime:{ fadeInTime:${b.dur||1}, holdTime:0, fadeOutTime:${b.dur||1} } });`);
+
+def('p_onScreenDisplay','Player','📺 On Screen Display Title','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'title',lbl:'Title',t:'text',def:'Welcome!'},{id:'sub',lbl:'Subtitle',t:'text',def:''},{id:'fade',lbl:'Fade in/out',t:'num',def:'10'},{id:'stay',lbl:'Stay ticks',t:'num',def:'70'}],false,
+  (b)=>`${b.p||'player'}.onScreenDisplay.setTitle("${b.title||'Welcome!'}", { subtitle:"${b.sub||''}", fadeInDuration:${b.fade||10}, stayDuration:${b.stay||70}, fadeOutDuration:${b.fade||10} });`);
+
+def('p_actionBar','Player','📊 Action Bar Message','player',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'msg',lbl:'Message',t:'text',def:'§aHello!'}],false,
+  (b)=>`${b.p||'player'}.onScreenDisplay.setActionBar("${b.msg||'§aHello!'}");`);
+
+def('p_getInventory','Player','🎒 Get Inventory','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'inv'},{id:'p',lbl:'Player',t:'text',def:'player'}],false,
+  (b)=>`const ${b.v||'inv'} = ${b.p||'player'}.getComponent("minecraft:inventory")?.container;`);
+
+def('p_getHeldItem','Player','✋ Get Held Item','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'item'},{id:'p',lbl:'Player',t:'text',def:'player'}],false,
+  (b,l)=>{const t=l==='ts'?`: ItemStack | undefined`:``; return `const ${b.v||'item'}${t} = ${b.p||'player'}.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);`});
+
+def('p_getScore','Player','🏆 Get Scoreboard Score','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'score'},{id:'p',lbl:'Player',t:'text',def:'player'},{id:'obj',lbl:'Objective',t:'text',def:'kills'}],false,
+  (b,l)=>{const t=l==='ts'?`: number | undefined`:``; return `const ${b.v||'score'}${t} = world.scoreboard.getObjective("${b.obj||'kills'}")?.getScore(${b.p||'player'});`});
+
+def('p_getDimension','Player','🌍 Get Player Dimension','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'pDim'},{id:'p',lbl:'Player',t:'text',def:'player'}],false,
+  (b,l)=>{const t=l==='ts'?`: Dimension`:``; return `const ${b.v||'pDim'}${t} = ${b.p||'player'}.dimension;`});
+
+def('p_isOp','Player','⭐ Is Operator?','player',
+  [{id:'v',lbl:'Variable',t:'text',def:'isOp'},{id:'p',lbl:'Player',t:'text',def:'player'}],false,
+  (b)=>`const ${b.v||'isOp'} = ${b.p||'player'}.isOp();`);
+
+// ── SCOREBOARD ────────────────────────────────────────────
+
+def('sb_getObjective','Scoreboard','📋 Get Objective','score',
+  [{id:'v',lbl:'Variable',t:'text',def:'obj'},{id:'name',lbl:'Objective name',t:'text',def:'kills'}],false,
+  (b,l)=>{const t=l==='ts'?`: ScoreboardObjective | undefined`:``; return `const ${b.v||'obj'}${t} = world.scoreboard.getObjective("${b.name||'kills'}");`});
+
+def('sb_addObjective','Scoreboard','➕ Add Objective','score',
+  [{id:'v',lbl:'Variable',t:'text',def:'obj'},{id:'name',lbl:'Name',t:'text',def:'kills'},{id:'display',lbl:'Display name',t:'text',def:'Kills'}],false,
+  (b,l)=>{const t=l==='ts'?`: ScoreboardObjective`:``; return `const ${b.v||'obj'}${t} = world.scoreboard.addObjective("${b.name||'kills'}", "${b.display||'Kills'}");`});
+
+def('sb_getScore','Scoreboard','🔢 Get Score','score',
+  [{id:'v',lbl:'Variable',t:'text',def:'score'},{id:'obj',lbl:'Objective var',t:'text',def:'obj'},{id:'entity',lbl:'Entity/Player',t:'text',def:'player'}],false,
+  (b,l)=>{const t=l==='ts'?`: number | undefined`:``; return `const ${b.v||'score'}${t} = ${b.obj||'obj'}?.getScore(${b.entity||'player'});`});
+
+def('sb_setScore','Scoreboard','✏ Set Score','score',
+  [{id:'obj',lbl:'Objective var',t:'text',def:'obj'},{id:'entity',lbl:'Entity/Player',t:'text',def:'player'},{id:'val',lbl:'Value',t:'num',def:'0'}],false,
+  (b)=>`${b.obj||'obj'}?.setScore(${b.entity||'player'}, ${b.val||0});`);
+
+def('sb_addScore','Scoreboard','➕ Add to Score','score',
+  [{id:'obj',lbl:'Objective var',t:'text',def:'obj'},{id:'entity',lbl:'Entity/Player',t:'text',def:'player'},{id:'val',lbl:'Amount',t:'num',def:'1'}],false,
+  (b)=>`${b.obj||'obj'}?.addScore(${b.entity||'player'}, ${b.val||1});`);
+
+def('sb_getParticipants','Scoreboard','👥 Get Participants','score',
+  [{id:'v',lbl:'Variable',t:'text',def:'parts'},{id:'obj',lbl:'Objective var',t:'text',def:'obj'}],false,
+  (b,l)=>{const t=l==='ts'?`: ScoreboardParticipant[]`:``; return `const ${b.v||'parts'}${t} = ${b.obj||'obj'}?.getParticipants() ?? [];`});
+
+def('sb_removeObjective','Scoreboard','🗑 Remove Objective','score',
+  [{id:'name',lbl:'Objective name',t:'text',def:'kills'}],false,
+  (b)=>`world.scoreboard.removeObjective("${b.name||'kills'}");`);
+
+// ── DYNAMIC PROPERTIES ───────────────────────────────────
+
+def('dp_setWorld','Dynamic Props','💾 Set World Property','dynprop',
+  [{id:'key',lbl:'Key',t:'text',def:'myPack:key'},{id:'val',lbl:'Value (expr)',t:'text',def:'"hello"'}],false,
+  (b)=>`world.setDynamicProperty("${b.key||'myPack:key'}", ${b.val||'"hello"'});`);
+
+def('dp_getWorld','Dynamic Props','📖 Get World Property','dynprop',
+  [{id:'v',lbl:'Variable',t:'text',def:'prop'},{id:'key',lbl:'Key',t:'text',def:'myPack:key'}],false,
+  (b)=>`const ${b.v||'prop'} = world.getDynamicProperty("${b.key||'myPack:key'}");`);
+
+def('dp_clearWorld','Dynamic Props','🗑 Clear World Property','dynprop',
+  [{id:'key',lbl:'Key',t:'text',def:'myPack:key'}],false,
+  (b)=>`world.clearDynamicProperties();`);
+
+def('dp_setEntity','Dynamic Props','💾 Set Entity Property','dynprop',
+  [{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'key',lbl:'Key',t:'text',def:'myPack:data'},{id:'val',lbl:'Value (expr)',t:'text',def:'42'}],false,
+  (b)=>`${b.e||'entity'}.setDynamicProperty("${b.key||'myPack:data'}", ${b.val||'42'});`);
+
+def('dp_getEntity','Dynamic Props','📖 Get Entity Property','dynprop',
+  [{id:'v',lbl:'Variable',t:'text',def:'data'},{id:'e',lbl:'Entity',t:'text',def:'entity'},{id:'key',lbl:'Key',t:'text',def:'myPack:data'}],false,
+  (b)=>`const ${b.v||'data'} = ${b.e||'entity'}.getDynamicProperty("${b.key||'myPack:data'}");`);
+
+// ── INVENTORY ─────────────────────────────────────────────
+
+def('inv_getItem','Inventory','📦 Get Item from Slot','inv',
+  [{id:'v',lbl:'Variable',t:'text',def:'item'},{id:'inv',lbl:'Container',t:'text',def:'inv'},{id:'slot',lbl:'Slot',t:'num',def:'0'}],false,
+  (b,l)=>{const t=l==='ts'?`: ItemStack | undefined`:``; return `const ${b.v||'item'}${t} = ${b.inv||'inv'}?.getItem(${b.slot||0});`});
+
+def('inv_setItem','Inventory','✏ Set Item in Slot','inv',
+  [{id:'inv',lbl:'Container',t:'text',def:'inv'},{id:'slot',lbl:'Slot',t:'num',def:'0'},{id:'item',lbl:'Item type',t:'text',def:'minecraft:diamond'},{id:'count',lbl:'Count',t:'num',def:'1'}],false,
+  (b)=>`${b.inv||'inv'}?.setItem(${b.slot||0}, new ItemStack("${b.item||'minecraft:diamond'}", ${b.count||1}));`);
+
+def('inv_addItem','Inventory','➕ Add Item','inv',
+  [{id:'inv',lbl:'Container',t:'text',def:'inv'},{id:'item',lbl:'Item type',t:'text',def:'minecraft:apple'},{id:'count',lbl:'Count',t:'num',def:'1'}],false,
+  (b)=>`${b.inv||'inv'}?.addItem(new ItemStack("${b.item||'minecraft:apple'}", ${b.count||1}));`);
+
+def('inv_clearSlot','Inventory','🗑 Clear Slot','inv',
+  [{id:'inv',lbl:'Container',t:'text',def:'inv'},{id:'slot',lbl:'Slot',t:'num',def:'0'}],false,
+  (b)=>`${b.inv||'inv'}?.clearItem(${b.slot||0});`);
+
+def('inv_size','Inventory','📏 Get Inventory Size','inv',
+  [{id:'v',lbl:'Variable',t:'text',def:'size'},{id:'inv',lbl:'Container',t:'text',def:'inv'}],false,
+  (b)=>`const ${b.v||'size'} = ${b.inv||'inv'}?.size ?? 0;`);
+
+// ── LOGIC ─────────────────────────────────────────────────
+
+def('if_then','Logic','❓ If … Then','logic',
+  [{id:'cond',lbl:'Condition',t:'text',def:'player.hasTag("vip")'}],true,
+  (b,l)=>`if (${b.cond||'true'}) {\n${CC(b,l,2)}}`,true);
+
+def('for_players','Logic','🔄 For Each Player','logic',
+  [{id:'pv',lbl:'Player var',t:'text',def:'player'},{id:'arr',lbl:'Array var',t:'text',def:'players'}],true,
+  (b,l)=>`for (const ${b.pv||'player'} of ${b.arr||'players'}) {\n${CC(b,l,2)}}`);
+
+def('for_entities','Logic','🔄 For Each Entity','logic',
+  [{id:'ev2',lbl:'Entity var',t:'text',def:'entity'},{id:'arr',lbl:'Array var',t:'text',def:'entities'}],true,
+  (b,l)=>`for (const ${b.ev2||'entity'} of ${b.arr||'entities'}) {\n${CC(b,l,2)}}`);
+
+def('for_range','Logic','🔢 For i = 0 to N','logic',
+  [{id:'iv',lbl:'Counter var',t:'text',def:'i'},{id:'n',lbl:'N',t:'num',def:'10'}],true,
+  (b,l)=>`for (let ${b.iv||'i'} = 0; ${b.iv||'i'} < ${b.n||10}; ${b.iv||'i'}++) {\n${CC(b,l,2)}}`);
+
+def('while_loop','Logic','🔁 While Loop','logic',
+  [{id:'cond',lbl:'Condition',t:'text',def:'running'}],true,
+  (b,l)=>`while (${b.cond||'true'}) {\n${CC(b,l,2)}}`);
+
+def('try_catch','Logic','🛡 Try / Catch','logic',
+  [{id:'ev3',lbl:'Error var',t:'text',def:'err'}],true,
+  (b,l)=>`try {\n${CC(b,l,2)}} catch (${b.ev3||'err'}) {\n  console.error(${b.ev3||'err'});\n}`);
+
+def('switch_block','Logic','🔀 Switch Statement','logic',
+  [{id:'expr',lbl:'Expression',t:'text',def:'gameMode'},{id:'cases',lbl:'Cases (csv)',t:'text',def:'creative,survival,adventure'}],false,
+  (b)=>{
+    const cases = (b.cases||'case1,case2').split(',').map(c=>c.trim());
+    return `switch (${b.expr||'value'}) {\n${cases.map(c=>`  case "${c}":\n    // handle ${c}\n    break;`).join('\n')}\n  default:\n    break;\n}`;
+  });
+
+def('cancel_event','Logic','🚫 Cancel Event','logic',
+  [{id:'h',lbl:'Handler var',t:'text',def:'ev'}],false,
+  (b)=>`${b.h||'ev'}.cancel = true;`);
+
+def('return_block','Logic','↩ Return','logic',
+  [{id:'val',lbl:'Value (empty=void)',t:'text',def:''}],false,
+  (b)=>`return${b.val?` ${b.val}`:''};`);
+
+def('break_block','Logic','⛔ Break','logic',[],false,()=>'break;');
+
+// ── VARIABLES ─────────────────────────────────────────────
+
+def('v_const','Variables','📦 Const','var',
+  [{id:'name',lbl:'Name',t:'text',def:'myVar'},{id:'val',lbl:'Value',t:'text',def:'"hello"'},{id:'typ',lbl:'TS type',t:'text',def:''}],false,
+  (b,l)=>{const t=l==='ts'&&b.typ?`: ${b.typ}`:``; return `const ${b.name||'myVar'}${t} = ${b.val||'"hello"'};`});
+
+def('v_let','Variables','📝 Let','var',
+  [{id:'name',lbl:'Name',t:'text',def:'counter'},{id:'val',lbl:'Value',t:'text',def:'0'},{id:'typ',lbl:'TS type',t:'text',def:''}],false,
+  (b,l)=>{const t=l==='ts'&&b.typ?`: ${b.typ}`:``; return `let ${b.name||'counter'}${t} = ${b.val||'0'};`});
+
+def('v_assign','Variables','✏ Assign','var',
+  [{id:'name',lbl:'Name',t:'text',def:'counter'},{id:'op',lbl:'Operator',t:'sel',def:'=',opts:['=','+=','-=','*=','/=','%=']},{id:'val',lbl:'Value',t:'text',def:'counter + 1'}],false,
+  (b)=>`${b.name||'counter'} ${b.op||'='} ${b.val||'0'};`);
+
+def('v_array','Variables','📋 Declare Array','var',
+  [{id:'name',lbl:'Name',t:'text',def:'items'},{id:'vals',lbl:'Values (csv)',t:'text',def:'"a","b","c"'},{id:'typ',lbl:'TS item type',t:'text',def:'string'}],false,
+  (b,l)=>{const t=l==='ts'&&b.typ?`: ${b.typ}[]`:``; return `const ${b.name||'items'}${t} = [${b.vals||''}];`});
+
+def('v_mapGet','Variables','🗺 Map / Object Get','var',
+  [{id:'v',lbl:'Var name',t:'text',def:'value'},{id:'map',lbl:'Map var',t:'text',def:'dataMap'},{id:'key',lbl:'Key',t:'text',def:'playerName'}],false,
+  (b)=>`const ${b.v||'value'} = ${b.map||'dataMap'}.get(${b.key||'key'});`);
+
+def('v_mapSet','Variables','🗺 Map / Object Set','var',
+  [{id:'map',lbl:'Map var',t:'text',def:'dataMap'},{id:'key',lbl:'Key',t:'text',def:'playerName'},{id:'val',lbl:'Value',t:'text',def:'42'}],false,
+  (b)=>`${b.map||'dataMap'}.set(${b.key||'key'}, ${b.val||'0'});`);
+
+def('v_newMap','Variables','🗺 New Map','var',
+  [{id:'name',lbl:'Name',t:'text',def:'dataMap'},{id:'kt',lbl:'Key type',t:'text',def:'string'},{id:'vt',lbl:'Value type',t:'text',def:'number'}],false,
+  (b,l)=>{const t=l==='ts'?`<${b.kt||'string'}, ${b.vt||'number'}>`:``; return `const ${b.name||'dataMap'} = new Map${t}();`});
+
+// ── FUNCTIONS ─────────────────────────────────────────────
+
+def('fn_declare','Functions','🔧 Function Declaration','func',
+  [{id:'name',lbl:'Function name',t:'text',def:'myFunction'},{id:'params',lbl:'Parameters',t:'text',def:'player: Player'},{id:'ret',lbl:'Return type',t:'text',def:'void'}],true,
+  (b,l)=>{
+    const t=l==='ts'?`(${b.params||''}): ${b.ret||'void'}`:`(${b.params||''})`;
+    return `function ${b.name||'myFunction'}${t} {\n${CC(b,l,2)}}`;
+  });
+
+def('fn_arrow','Functions','➡ Arrow Function','func',
+  [{id:'name',lbl:'Const name',t:'text',def:'handleAction'},{id:'params',lbl:'Parameters',t:'text',def:'player: Player'},{id:'ret',lbl:'Return type',t:'text',def:'void'}],true,
+  (b,l)=>{
+    const t=l==='ts'?`(${b.params||''}): ${b.ret||'void'}`:`(${b.params||''})`;
+    return `const ${b.name||'handleAction'} = ${t} => {\n${CC(b,l,2)}};`;
+  });
+
+def('fn_async','Functions','⚡ Async Function','func',
+  [{id:'name',lbl:'Function name',t:'text',def:'asyncTask'},{id:'params',lbl:'Parameters',t:'text',def:''},{id:'ret',lbl:'Return type',t:'text',def:'Promise<void>'}],true,
+  (b,l)=>{
+    const t=l==='ts'?`(${b.params||''}): ${b.ret||'Promise<void>'}`:`(${b.params||''})`;
+    return `async function ${b.name||'asyncTask'}${t} {\n${CC(b,l,2)}}`;
+  });
+
+def('fn_call','Functions','📞 Call Function','func',
+  [{id:'name',lbl:'Function',t:'text',def:'myFunction'},{id:'args',lbl:'Arguments',t:'text',def:'player'}],false,
+  (b)=>`${b.name||'myFunction'}(${b.args||''});`);
+
+def('fn_callReturn','Functions','📞 Call (capture return)','func',
+  [{id:'v',lbl:'Variable',t:'text',def:'result'},{id:'name',lbl:'Function',t:'text',def:'getScore'},{id:'args',lbl:'Arguments',t:'text',def:'player'}],false,
+  (b)=>`const ${b.v||'result'} = ${b.name||'getScore'}(${b.args||''});`);
+
+// ── STRUCTURES ────────────────────────────────────────────
+
+def('st_interface','Structures','📐 TypeScript Interface','struct',
+  [{id:'name',lbl:'Interface name',t:'text',def:'PlayerData'},{id:'fields',lbl:'Fields (name:type,…)',t:'text',def:'kills:number,deaths:number'}],false,
+  (b,l)=>{
+    if(l!=='ts') return `// TS only: interface ${b.name||'MyInterface'}`;
+    const fields=(b.fields||'key:string').split(',').map(f=>`  ${f.trim()};`).join('\n');
+    return `interface ${b.name||'PlayerData'} {\n${fields}\n}`;
+  });
+
+def('st_type','Structures','📐 Type Alias','struct',
+  [{id:'name',lbl:'Type name',t:'text',def:'PlayerMap'},{id:'val',lbl:'Type definition',t:'text',def:'Map<string, number>'}],false,
+  (b,l)=>{
+    if(l!=='ts') return `// TS only: type ${b.name}`;
+    return `type ${b.name||'MyType'} = ${b.val||'string'};`;
+  });
+
+def('st_enum','Structures','🔢 Enum','struct',
+  [{id:'name',lbl:'Enum name',t:'text',def:'GameState'},{id:'vals',lbl:'Values (csv)',t:'text',def:'LOBBY,PLAYING,ENDED'}],false,
+  (b,l)=>{
+    if(l!=='ts') return `// TS only: enum ${b.name||'MyEnum'}`;
+    const vals=(b.vals||'A,B').split(',').map((v,i)=>`  ${v.trim()} = ${i}`).join(',\n');
+    return `enum ${b.name||'GameState'} {\n${vals}\n}`;
+  });
+
+// ── FORMS (UI) ────────────────────────────────────────────
+
+def('form_action','Forms & UI','📋 Show Action Form','form',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'title',lbl:'Title',t:'text',def:'My Form'},{id:'body',lbl:'Body text',t:'text',def:'Choose an option:'},{id:'btn1',lbl:'Button 1',t:'text',def:'Option A'},{id:'btn2',lbl:'Button 2',t:'text',def:'Option B'}],true,
+  (b,l)=>`new ActionFormData()\n  .title("${b.title||'My Form'}")\n  .body("${b.body||''}")\n  .button("${b.btn1||'Button 1'}")\n  .button("${b.btn2||'Button 2'}")\n  .show(${b.p||'player'}).then((response) => {\n    if (response.canceled) return;\n    // response.selection: 0=btn1, 1=btn2\n${CC(b,l,4)}  });`);
+
+def('form_message','Forms & UI','💬 Show Message Form','form',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'title',lbl:'Title',t:'text',def:'Alert'},{id:'body',lbl:'Body',t:'text',def:'Something happened!'},{id:'btn1',lbl:'Button 1',t:'text',def:'OK'},{id:'btn2',lbl:'Button 2',t:'text',def:'Cancel'}],true,
+  (b,l)=>`new MessageFormData()\n  .title("${b.title||'Alert'}")\n  .body("${b.body||''}")\n  .button1("${b.btn1||'OK'}")\n  .button2("${b.btn2||'Cancel'}")\n  .show(${b.p||'player'}).then((response) => {\n    // response.selection: 0=btn2, 1=btn1\n${CC(b,l,4)}  });`);
+
+def('form_modal','Forms & UI','🗂 Show Modal Form','form',
+  [{id:'p',lbl:'Player',t:'text',def:'player'},{id:'title',lbl:'Title',t:'text',def:'Settings'},{id:'v',lbl:'Response var',t:'text',def:'resp'}],true,
+  (b,l)=>`const form = new ModalFormData().title("${b.title||'Settings'}");\n// form.textField("Label","placeholder");\n// form.toggle("Option", true);\n// form.slider("Amount", 0, 100, 1, 50);\nform.show(${b.p||'player'}).then((${b.v||'resp'}) => {\n  if (${b.v||'resp'}.canceled) return;\n  // ${b.v||'resp'}.formValues[0], [1], ...\n${CC(b,l,2)}});`);
+
+// ── OUTPUT ────────────────────────────────────────────────
+
+def('out_log','Output','📋 Console Log','output',
+  [{id:'msg',lbl:'Message/expr',t:'text',def:'"debug info"'}],false,
+  (b)=>`console.log(${b.msg||'"debug"'});`);
+
+def('out_warn','Output','⚠ Console Warn','output',
+  [{id:'msg',lbl:'Message/expr',t:'text',def:'"warning!"'}],false,
+  (b)=>`console.warn(${b.msg||'"warning"'});`);
+
+def('out_error','Output','❌ Console Error','output',
+  [{id:'msg',lbl:'Message/expr',t:'text',def:'"error!"'}],false,
+  (b)=>`console.error(${b.msg||'"error"'});`);
+
+def('out_comment','Output','💭 Comment','output',
+  [{id:'txt',lbl:'Comment',t:'text',def:'my comment here'}],false,
+  (b)=>`// ${b.txt||'comment'}`);
+
+def('out_blockComment','Output','📝 Block Comment','output',
+  [{id:'txt',lbl:'Comment',t:'textarea',def:'Description of what this does.'}],false,
+  (b)=>`/**\n * ${(b.txt||'').split('\n').join('\n * ')}\n */`);
+
+def('out_raw','Output','⚙ Raw Code','output',
+  [{id:'code',lbl:'Code',t:'textarea',def:'// custom code'}],false,
+  (b)=>b.code||'// raw code');
+
+def('out_import','Output','📥 Import Statement','output',
+  [{id:'items',lbl:'Imports',t:'text',def:'world, system'},{id:'pkg',lbl:'Package',t:'text',def:'@minecraft/server'}],false,
+  (b)=>`import { ${b.items||'world'} } from "${b.pkg||'@minecraft/server'}";`);
+
+def('out_particle','Output','✨ Spawn Particle','output',
+  [{id:'dim',lbl:'Dimension',t:'text',def:'dim'},{id:'id',lbl:'Particle ID',t:'text',def:'minecraft:explosion_particle'},{id:'x',lbl:'X',t:'num',def:'0'},{id:'y',lbl:'Y',t:'num',def:'64'},{id:'z',lbl:'Z',t:'num',def:'0'}],false,
+  (b)=>`${b.dim||'dim'}.spawnParticle("${b.id||'minecraft:explosion_particle'}", { x:${b.x||0}, y:${b.y||64}, z:${b.z||0} });`);
+
+// ══════════════════════════════════════════════════════════
+//  STATE & HELPERS
+// ══════════════════════════════════════════════════════════
+
+let blocks = [];
+let history = [];
+let dragSrc = null;
+let lang = 'ts';
+let bid = 1;
+
+function newBlock(type) {
+  const d = BD[type]; if(!d) return null;
   const fields = {};
-  (def.fields || []).forEach(f => { fields[f.id] = f.default || ''; });
-  return {
-    id: 'b' + (blockIdCounter++),
-    type,
-    fields,
-    children: def.hasChildren ? [] : null,
-    collapsed: false
-  };
-}
-
-// ══════════════════════════════════════════
-//  RENDER PALETTE
-// ══════════════════════════════════════════
-
-const CAT_COLORS = {
-  'Events': '#60a5fa',
-  'System': '#4ade80',
-  'World': '#f87171',
-  'Entity': '#fbbf24',
-  'Player': '#a78bfa',
-  'Logic': '#67e8f9',
-  'Variables': '#34d399',
-  'Output': '#c084fc'
-};
-
-const CAT_ICONS = {
-  'Events': '⚡', 'System': '⚙', 'World': '🌍', 'Entity': '🐢',
-  'Player': '👤', 'Logic': '🔀', 'Variables': '📦', 'Output': '📤'
-};
-
-function renderPalette(filter = '') {
-  const cats = {};
-  Object.entries(BLOCK_DEFS).forEach(([key, def]) => {
-    if (filter && !def.label.toLowerCase().includes(filter.toLowerCase())) return;
-    if (!cats[def.cat]) cats[def.cat] = [];
-    cats[def.cat].push({ key, def });
-  });
-
-  const container = document.getElementById('blockPalette');
-  container.innerHTML = '';
-
-  Object.entries(cats).forEach(([cat, items]) => {
-    const color = CAT_COLORS[cat] || '#888';
-    const icon = CAT_ICONS[cat] || '•';
-
-    const header = document.createElement('div');
-    header.className = 'cat-header';
-    header.innerHTML = `<span class="cat-dot" style="background:${color}"></span>${icon} ${cat}`;
-    container.appendChild(header);
-
-    items.forEach(({ key, def }) => {
-      const el = document.createElement('div');
-      el.className = `palette-block`;
-      el.style.color = color;
-      el.style.background = `${color}12`;
-      el.innerHTML = `<span class="block-icon" style="background:${color}22">${def.label.split(' ')[0]}</span>${def.label.replace(/^[^\s]+\s/,'')}`;
-      el.draggable = true;
-      el.addEventListener('dragstart', (e) => {
-        dragSource = { type: 'palette', blockType: key };
-        e.dataTransfer.effectAllowed = 'copy';
-        el.style.opacity = '0.5';
-      });
-      el.addEventListener('dragend', () => { el.style.opacity = '1'; });
-      container.appendChild(el);
-    });
-  });
-}
-
-function filterBlocks(val) { renderPalette(val); }
-
-// ══════════════════════════════════════════
-//  RENDER CANVAS BLOCKS
-// ══════════════════════════════════════════
-
-function renderCanvas() {
-  const zone = document.getElementById('mainDropZone');
-  const hint = document.getElementById('dropHint');
-  hint.style.display = blocks.length === 0 ? 'block' : 'none';
-
-  // Remove old block elements (keep drop hint)
-  Array.from(zone.children).forEach(c => { if (c !== hint) c.remove(); });
-
-  blocks.forEach(b => {
-    const el = renderBlock(b, blocks, null);
-    zone.appendChild(el);
-  });
-
-  document.getElementById('blockCount').textContent = countAllBlocks(blocks);
-  updateCode();
-}
-
-function countAllBlocks(arr) {
-  let n = arr.length;
-  arr.forEach(b => { if (b.children) n += countAllBlocks(b.children); });
-  return n;
-}
-
-function renderBlock(block, siblingArray, parentId) {
-  const def = BLOCK_DEFS[block.type];
-  if (!def) return document.createTextNode('');
-
-  const wrapper = document.createElement('div');
-  wrapper.className = `script-block theme-${def.theme}${block.id === selectedBlockId ? ' selected' : ''}`;
-  wrapper.dataset.blockId = block.id;
-
-  // HEADER
-  const header = document.createElement('div');
-  header.className = 'block-header';
-  header.innerHTML = `
-    <span class="block-label">${def.label}</span>
-    <div class="block-controls">
-      ${def.hasChildren ? `<button class="block-btn" title="Collapse" onclick="toggleCollapse('${block.id}')">${block.collapsed ? '▶' : '▼'}</button>` : ''}
-      <button class="block-btn" onclick="duplicateBlock('${block.id}', '${parentId || ''}')" title="Duplicate">⧉</button>
-      <button class="block-btn" onclick="deleteBlock('${block.id}', '${parentId || ''}')" title="Delete" style="color:#ff6b6b">✕</button>
-    </div>
-  `;
-
-  // Make header draggable for reordering
-  header.draggable = true;
-  header.addEventListener('dragstart', (e) => {
-    e.stopPropagation();
-    dragSource = { type: 'canvas', blockId: block.id, siblingArray, parentId };
-    wrapper.classList.add('drag-source');
-    e.dataTransfer.effectAllowed = 'move';
-  });
-  header.addEventListener('dragend', () => wrapper.classList.remove('drag-source'));
-
-  header.addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON') return;
-    selectedBlockId = block.id === selectedBlockId ? null : block.id;
-    renderCanvas();
-  });
-
-  wrapper.appendChild(header);
-
-  if (!block.collapsed) {
-    // BODY
-    const body = document.createElement('div');
-    body.className = 'block-body';
-
-    // Fields
-    def.fields.forEach(f => {
-      const row = document.createElement('div');
-      row.className = 'field-row';
-      row.innerHTML = `<span class="field-label">${f.label}</span>`;
-
-      if (f.type === 'select') {
-        const sel = document.createElement('select');
-        sel.className = 'field-select';
-        f.options.forEach(opt => {
-          const o = document.createElement('option');
-          o.value = opt; o.textContent = opt;
-          if (block.fields[f.id] === opt) o.selected = true;
-          sel.appendChild(o);
-        });
-        sel.addEventListener('change', () => {
-          block.fields[f.id] = sel.value;
-          updateCode();
-        });
-        row.appendChild(sel);
-      } else if (f.type === 'textarea') {
-        const ta = document.createElement('textarea');
-        ta.className = 'field-input wide';
-        ta.style.cssText = 'height:60px;resize:vertical;';
-        ta.value = block.fields[f.id] || '';
-        ta.addEventListener('input', () => { block.fields[f.id] = ta.value; updateCode(); });
-        row.appendChild(ta);
-      } else {
-        const inp = document.createElement('input');
-        inp.className = 'field-input' + (f.id === 'cmd' || f.id === 'code' || f.id === 'condition' || f.id === 'value' || f.id === 'msg' ? ' wide' : '');
-        inp.type = f.type === 'number' ? 'number' : 'text';
-        inp.value = block.fields[f.id] || '';
-        inp.placeholder = f.default || '';
-        inp.addEventListener('input', () => { block.fields[f.id] = inp.value; updateCode(); });
-        row.appendChild(inp);
-      }
-
-      body.appendChild(row);
-    });
-
-    // Children zone
-    if (def.hasChildren && block.children !== null) {
-      if (!block.collapsed) {
-        const nested = document.createElement('div');
-        nested.className = 'block-nested';
-
-        block.children.forEach(child => {
-          const childEl = renderBlock(child, block.children, block.id);
-          nested.appendChild(childEl);
-        });
-
-        const childZone = document.createElement('div');
-        childZone.className = 'block-children-zone';
-        if (block.children.length === 0) {
-          childZone.innerHTML = '<div class="add-child-hint">Drop blocks here</div>';
-        }
-
-        childZone.addEventListener('dragover', (e) => { e.preventDefault(); childZone.classList.add('drag-over'); });
-        childZone.addEventListener('dragleave', () => childZone.classList.remove('drag-over'));
-        childZone.addEventListener('drop', (e) => {
-          e.stopPropagation();
-          childZone.classList.remove('drag-over');
-          handleDrop(block.children, block.id);
-        });
-
-        nested.appendChild(childZone);
-        body.appendChild(nested);
-      }
-    }
-
-    wrapper.appendChild(body);
-  }
-
-  // Drop target on block itself for reordering
-  wrapper.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-  wrapper.addEventListener('drop', (e) => {
-    e.stopPropagation();
-    // Drop before this block in its sibling array
-    const idx = siblingArray.findIndex(b => b.id === block.id);
-    handleDrop(siblingArray, parentId, idx);
-  });
-
-  return wrapper;
-}
-
-function handleDrop(targetArray, parentId, insertIdx) {
-  if (!dragSource) return;
-
-  if (dragSource.type === 'palette') {
-    const newBlock = createBlock(dragSource.blockType);
-    if (!newBlock) return;
-    if (insertIdx !== undefined) targetArray.splice(insertIdx, 0, newBlock);
-    else targetArray.push(newBlock);
-  } else if (dragSource.type === 'canvas') {
-    const { blockId, siblingArray: srcArray } = dragSource;
-    const srcIdx = srcArray.findIndex(b => b.id === blockId);
-    if (srcIdx === -1) return;
-    const [moved] = srcArray.splice(srcIdx, 1);
-
-    // Don't drop into own children
-    if (parentId && isDescendant(moved, parentId)) {
-      srcArray.splice(srcIdx, 0, moved);
-      return;
-    }
-
-    if (insertIdx !== undefined) {
-      const adjustedIdx = (srcArray === targetArray && insertIdx > srcIdx) ? insertIdx - 1 : insertIdx;
-      targetArray.splice(adjustedIdx, 0, moved);
-    } else targetArray.push(moved);
-  }
-
-  dragSource = null;
-  renderCanvas();
-}
-
-function isDescendant(block, targetId) {
-  if (!block.children) return false;
-  return block.children.some(c => c.id === targetId || isDescendant(c, targetId));
-}
-
-// Canvas drop zone
-document.getElementById('mainDropZone').addEventListener('dragover', (e) => {
-  e.preventDefault();
-  document.getElementById('mainDropZone').classList.add('drag-over');
-});
-document.getElementById('mainDropZone').addEventListener('dragleave', (e) => {
-  if (!e.currentTarget.contains(e.relatedTarget))
-    document.getElementById('mainDropZone').classList.remove('drag-over');
-});
-document.getElementById('mainDropZone').addEventListener('drop', (e) => {
-  document.getElementById('mainDropZone').classList.remove('drag-over');
-  if (e.target === e.currentTarget || e.target.id === 'dropHint' || e.target.closest('.drop-hint')) {
-    handleDrop(blocks, null);
-  }
-});
-
-// ══════════════════════════════════════════
-//  BLOCK OPERATIONS
-// ══════════════════════════════════════════
-
-function toggleCollapse(id) {
-  const b = findBlock(id, blocks);
-  if (b) { b.collapsed = !b.collapsed; renderCanvas(); }
-}
-
-function deleteBlock(id, parentId) {
-  removeBlock(id, blocks);
-  if (selectedBlockId === id) selectedBlockId = null;
-  renderCanvas();
-}
-
-function removeBlock(id, arr) {
-  const idx = arr.findIndex(b => b.id === id);
-  if (idx !== -1) { arr.splice(idx, 1); return true; }
-  for (const b of arr) {
-    if (b.children && removeBlock(id, b.children)) return true;
-  }
-  return false;
+  (d.fields||[]).forEach(f => { fields[f.id] = f.def||''; });
+  return { id:'b'+(bid++), type, fields, children: d.hasChildren ? [] : null, elseChildren: d.hasElse ? [] : null, collapsed:false };
 }
 
 function findBlock(id, arr) {
-  for (const b of arr) {
-    if (b.id === id) return b;
-    if (b.children) { const found = findBlock(id, b.children); if (found) return found; }
+  for(const b of arr) {
+    if(b.id===id) return b;
+    if(b.children) { const f=findBlock(id,b.children); if(f) return f; }
+    if(b.elseChildren) { const f=findBlock(id,b.elseChildren); if(f) return f; }
   }
   return null;
 }
 
-function duplicateBlock(id, parentId) {
-  const b = findBlock(id, blocks);
-  if (!b) return;
-  const copy = JSON.parse(JSON.stringify(b));
-  reassignIds(copy);
-  const arr = parentId ? findBlock(parentId, blocks)?.children : blocks;
-  if (!arr) return;
-  const idx = arr.findIndex(x => x.id === id);
-  arr.splice(idx + 1, 0, copy);
-  renderCanvas();
+function removeBlock(id, arr) {
+  const i=arr.findIndex(b=>b.id===id);
+  if(i!==-1){arr.splice(i,1);return true;}
+  for(const b of arr){
+    if(b.children&&removeBlock(id,b.children)) return true;
+    if(b.elseChildren&&removeBlock(id,b.elseChildren)) return true;
+  }
+  return false;
+}
+
+function countAll(arr) {
+  let n=arr.length;
+  arr.forEach(b=>{
+    if(b.children) n+=countAll(b.children);
+    if(b.elseChildren) n+=countAll(b.elseChildren);
+  });
+  return n;
+}
+
+function isDescendant(b, tid) {
+  if(!b.children) return false;
+  return b.children.some(c=>c.id===tid||isDescendant(c,tid));
 }
 
 function reassignIds(b) {
-  b.id = 'b' + (blockIdCounter++);
-  if (b.children) b.children.forEach(reassignIds);
+  b.id='b'+(bid++);
+  if(b.children) b.children.forEach(reassignIds);
+  if(b.elseChildren) b.elseChildren.forEach(reassignIds);
 }
 
-function clearAll() {
-  blocks = [];
-  selectedBlockId = null;
-  renderCanvas();
-  showToast('Canvas cleared', 'info');
+function saveHistory() {
+  history.push(JSON.stringify(blocks));
+  if(history.length>50) history.shift();
 }
 
-// ══════════════════════════════════════════
+function undo() {
+  if(!history.length) return toast('Nothing to undo','warn');
+  blocks = JSON.parse(history.pop());
+  render();
+  toast('Undone ↩','inf');
+}
+
+// ══════════════════════════════════════════════════════════
 //  CODE GENERATION
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 
-function childrenCode(block, lang, indent) {
-  if (!block.children || block.children.length === 0) return '';
-  const pad = ' '.repeat(indent);
-  return block.children.map(c => {
-    const def = BLOCK_DEFS[c.type];
-    if (!def) return '';
-    return def.codeGen(c, lang).split('\n').map(l => pad + l).join('\n') + '\n';
+function CC(block, lang, indent) {
+  const arr = block.children || [];
+  if(!arr.length) return '';
+  const pad=' '.repeat(indent);
+  return arr.map(c=>{
+    const d=BD[c.type]; if(!d) return '';
+    const fields = c.fields||{};
+    return d.gen(fields,lang,c).split('\n').map(l=>pad+l).join('\n')+'\n';
   }).join('');
 }
 
-function generateCode(lang) {
-  if (blocks.length === 0) {
-    return lang === 'ts'
-      ? `// 🧱 Start building your script!\n// Drag blocks from the left panel\nimport { world, system } from "@minecraft/server";\nimport { GameMode } from "@minecraft/server";`
-      : `// 🧱 Start building your script!\n// Drag blocks from the left panel\nimport { world, system } from "@minecraft/server";`;
+function CCElse(block, lang, indent) {
+  const arr = block.elseChildren || [];
+  if(!arr.length) return '';
+  const pad=' '.repeat(indent);
+  return arr.map(c=>{
+    const d=BD[c.type]; if(!d) return '';
+    const fields=c.fields||{};
+    return d.gen(fields,lang,c).split('\n').map(l=>pad+l).join('\n')+'\n';
+  }).join('');
+}
+
+function generateCode() {
+  if(!blocks.length) {
+    return lang==='ts'
+      ? `import { world, system } from "@minecraft/server";\n\n// 🧱 Start building your script!\n// Drag blocks from the left panel.`
+      : `import { world, system } from "@minecraft/server";\n\n// 🧱 Start building your script!\n// Drag blocks from the left panel.`;
   }
 
-  const imports = new Set(['world', 'system']);
+  const types = getAllTypes(blocks);
+  const mcImports = new Set(['world','system']);
+  const uiImports = new Set();
   const extraImports = new Set();
 
-  // Detect needed imports
-  const allTypes = getAllBlockTypes(blocks);
-  if (allTypes.has('player_setGameMode')) extraImports.add('GameMode');
-  if (lang === 'ts') {
-    if (allTypes.has('world_getDimension')) extraImports.add('Dimension');
-    if (allTypes.has('world_getPlayers') || allTypes.has('player_sendMessage') || allTypes.has('player_runCommand')) extraImports.add('Player');
-    if (allTypes.has('world_spawnEntity') || allTypes.has('entity_applyDamage')) extraImports.add('Entity');
-    if (allTypes.has('player_getLocation')) extraImports.add('Vector3');
+  if(types.has('p_setGameMode')) mcImports.add('GameMode');
+  if(lang==='ts') {
+    if(types.has('w_getDim')||types.has('w_setBlock')||types.has('w_getBlock')) extraImports.add('Dimension');
+    if(types.has('w_getPlayers')||types.has('p_sendMsg')||types.has('for_players')) extraImports.add('Player');
+    if(types.has('w_spawnEntity')||types.has('ent_applyDmg')) extraImports.add('Entity');
+    if(types.has('p_getLocation')) extraImports.add('Vector3');
+    if(types.has('inv_setItem')||types.has('inv_addItem')||types.has('w_spawnItem')) extraImports.add('ItemStack');
+    if(types.has('sb_getObjective')||types.has('sb_addObjective')) { extraImports.add('ScoreboardObjective'); extraImports.add('ScoreboardParticipant'); }
   }
+  if(types.has('inv_setItem')||types.has('inv_addItem')||types.has('w_spawnItem')) mcImports.add('ItemStack');
+  if(types.has('p_getHeldItem')) mcImports.add('EquipmentSlot');
+  if(types.has('w_setWeather')) mcImports.add('WeatherType');
+  if(types.has('form_action')) uiImports.add('ActionFormData');
+  if(types.has('form_message')) uiImports.add('MessageFormData');
+  if(types.has('form_modal')) uiImports.add('ModalFormData');
 
-  const mainImport = `import { ${[...imports].join(', ')} } from "@minecraft/server";`;
-  const extraImportLine = extraImports.size > 0 ? `import { ${[...extraImports].join(', ')} } from "@minecraft/server";` : '';
+  const lines = [];
+  lines.push(`import { ${[...mcImports].join(', ')} } from "@minecraft/server";`);
+  if(uiImports.size) lines.push(`import { ${[...uiImports].join(', ')} } from "@minecraft/server-ui";`);
+  lines.push('');
 
-  const header = [mainImport, extraImportLine].filter(Boolean).join('\n');
-
-  const body = blocks.map(b => {
-    const def = BLOCK_DEFS[b.type];
-    if (!def) return '';
-    return def.codeGen(b, lang);
+  const body = blocks.map(b=>{
+    const d=BD[b.type]; if(!d) return '';
+    const code = d.gen(b.fields||{}, lang, b);
+    // if block has else
+    if(b.elseChildren && b.elseChildren.length) {
+      const elseCode = CCElse(b, lang, 2);
+      return code + ' else {\n' + elseCode + '}';
+    }
+    return code;
   }).join('\n\n');
 
-  return header + '\n\n' + body;
+  return lines.join('\n') + '\n' + body;
 }
 
-function getAllBlockTypes(arr) {
-  const types = new Set();
-  arr.forEach(b => {
-    types.add(b.type);
-    if (b.children) getAllBlockTypes(b.children).forEach(t => types.add(t));
+function getAllTypes(arr) {
+  const s=new Set();
+  arr.forEach(b=>{
+    s.add(b.type);
+    if(b.children) getAllTypes(b.children).forEach(t=>s.add(t));
+    if(b.elseChildren) getAllTypes(b.elseChildren).forEach(t=>s.add(t));
   });
-  return types;
+  return s;
 }
 
-function setLang(lang, btn) {
-  currentLang = lang;
-  document.querySelectorAll('.lang-tab').forEach(b => b.classList.remove('active'));
+function updateCode() {
+  const code = generateCode();
+  document.getElementById('codeOut').innerHTML = syntaxHL(code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  document.getElementById('bcount').textContent = countAll(blocks);
+  document.getElementById('es').style.display = blocks.length?'none':'block';
+}
+
+function syntaxHL(c) {
+  return c
+    .replace(/(\/\*[\s\S]*?\*\/)/g,'<span class="cm">$1</span>')
+    .replace(/(\/\/.+)/g,'<span class="cm">$1</span>')
+    .replace(/\b(import|export|from|const|let|var|if|else|for|of|in|return|try|catch|async|await|true|false|null|undefined|new|this|class|interface|type|enum|switch|case|default|break|while|function)\b/g,'<span class="kw">$1</span>')
+    .replace(/\b(world|system)\b/g,'<span class="ev">$1</span>')
+    .replace(/("(?:[^"\\]|\\.)*")/g,'<span class="str">$1</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g,'<span class="num">$1</span>');
+}
+
+// ══════════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════════
+
+const CAT_COLORS = {
+  Events:'#60a5fa', System:'#4ade80', World:'#f87171', Entity:'#fbbf24',
+  Player:'#c084fc', Scoreboard:'#fb923c', 'Dynamic Props':'#93c5fd',
+  Inventory:'#e879f9', Logic:'#67e8f9', Variables:'#34d399',
+  Functions:'#818cf8', Structures:'#86efac', 'Forms & UI':'#fb7185', Output:'#a78bfa'
+};
+
+const catCollapsed = {};
+
+function renderPalette(filter='') {
+  const cats = {};
+  Object.entries(BD).forEach(([k,d])=>{
+    if(filter&&!d.label.toLowerCase().includes(filter.toLowerCase())&&!d.cat.toLowerCase().includes(filter.toLowerCase())) return;
+    if(!cats[d.cat]) cats[d.cat]=[];
+    cats[d.cat].push({k,d});
+  });
+
+  const pal = document.getElementById('palette');
+  pal.innerHTML='';
+
+  Object.entries(cats).forEach(([cat,items])=>{
+    const color=CAT_COLORS[cat]||'#888';
+    const collapsed=catCollapsed[cat]&&!filter;
+
+    const hdr=document.createElement('div');
+    hdr.className='cat-hdr'+(collapsed?' cat-collapsed':'');
+    hdr.innerHTML=`<span class="cat-dot" style="background:${color}"></span>${cat}<span class="cat-arrow">▼</span>`;
+    hdr.onclick=()=>{ catCollapsed[cat]=!catCollapsed[cat]; renderPalette(document.getElementById('sbSearch').value); };
+    pal.appendChild(hdr);
+
+    if(!collapsed) {
+      items.forEach(({k,d})=>{
+        const el=document.createElement('div');
+        el.className='pal-block';
+        el.style.color=color;
+        el.style.background=`${color}14`;
+        const parts=d.label.split(' ');
+        const icon=parts[0]; const name=parts.slice(1).join(' ');
+        el.innerHTML=`<span class="pal-icon" style="background:${color}22">${icon}</span>${name}`;
+        el.draggable=true;
+        el.addEventListener('dragstart',e=>{ dragSrc={type:'palette',blockType:k}; e.dataTransfer.effectAllowed='copy'; el.style.opacity='.4'; });
+        el.addEventListener('dragend',()=>el.style.opacity='1');
+        el.title=d.label;
+        pal.appendChild(el);
+      });
+    }
+  });
+}
+
+function filterPalette(v) { renderPalette(v); }
+
+function render() {
+  const dz=document.getElementById('dz');
+  // Remove all but empty state
+  Array.from(dz.children).forEach(c=>{ if(c.id!=='es') c.remove(); });
+  blocks.forEach(b=>{ const el=renderBlock(b,blocks,null); dz.appendChild(el); });
+  updateCode();
+}
+
+function renderBlock(block, sibArr, parentId) {
+  const d=BD[block.type];
+  if(!d){const e=document.createElement('div'); return e;}
+
+  const wrap=document.createElement('div');
+  wrap.className=`sblock t-${d.theme}${block.id===selId?' selected':''}`;
+  wrap.dataset.id=block.id;
+
+  const fields=block.fields||{};
+
+  // HEADER
+  const bh=document.createElement('div');
+  bh.className='bh'+((!d.hasChildren||block.collapsed)&&!d.fields?.length?' no-body':'');
+
+  const parts=d.label.split(' ');
+  bh.innerHTML=`<span class="b-icon">${parts[0]}</span><span class="b-label">${parts.slice(1).join(' ')}</span>
+  <div class="b-btns">
+    ${d.hasChildren?`<button class="bb" onclick="toggleC('${block.id}')" title="Collapse/Expand">${block.collapsed?'▶':'▼'}</button>`:''}
+    <button class="bb" onclick="dupBlock('${block.id}','${parentId||''}')" title="Duplicate">⧉</button>
+    <button class="bb del" onclick="delBlock('${block.id}')" title="Delete">✕</button>
+  </div>`;
+
+  // drag
+  bh.draggable=true;
+  bh.addEventListener('dragstart',e=>{ e.stopPropagation(); dragSrc={type:'canvas',blockId:block.id,sibArr,parentId}; wrap.classList.add('drag-src'); e.dataTransfer.effectAllowed='move'; });
+  bh.addEventListener('dragend',()=>wrap.classList.remove('drag-src'));
+  bh.addEventListener('click',e=>{ if(e.target.closest('.bb')) return; selId=block.id===selId?null:block.id; render(); });
+
+  wrap.appendChild(bh);
+
+  if(!block.collapsed) {
+    const body=document.createElement('div');
+    body.className='bbody';
+
+    // fields
+    d.fields.forEach(f=>{
+      const row=document.createElement('div');
+      row.className='field-row';
+      row.innerHTML=`<span class="field-lbl">${f.lbl}</span>`;
+
+      if(f.t==='sel') {
+        const sel=document.createElement('select');
+        sel.className='fsel';
+        f.opts.forEach(o=>{ const opt=document.createElement('option'); opt.value=o; opt.textContent=o; if(fields[f.id]===o) opt.selected=true; sel.appendChild(opt); });
+        sel.onchange=()=>{ fields[f.id]=sel.value; updateCode(); };
+        row.appendChild(sel);
+      } else if(f.t==='textarea') {
+        const ta=document.createElement('textarea');
+        ta.className='fta';
+        ta.value=fields[f.id]||'';
+        ta.oninput=()=>{ fields[f.id]=ta.value; updateCode(); };
+        row.appendChild(ta);
+      } else {
+        const inp=document.createElement('input');
+        inp.className='fi'+(['cmd','code','cond','val','msg','params','fields','vals','cases','items','key','typ','vt','kt','sub','body','opts','ret','def'].includes(f.id)?' wide':'');
+        inp.type=f.t==='num'?'number':'text';
+        inp.value=fields[f.id]||'';
+        inp.placeholder=f.def||'';
+        inp.oninput=()=>{ fields[f.id]=inp.value; updateCode(); };
+        row.appendChild(inp);
+      }
+      body.appendChild(row);
+    });
+
+    // children
+    if(d.hasChildren && block.children!==null) {
+      const nw=document.createElement('div');
+      nw.className='nested-wrap';
+      block.children.forEach(c=>nw.appendChild(renderBlock(c,block.children,block.id)));
+
+      const cz=document.createElement('div');
+      cz.className='child-zone';
+      if(!block.children.length) cz.innerHTML='<div class="child-hint">Drop blocks here</div>';
+      setupDrop(cz, block.children, block.id);
+      nw.appendChild(cz);
+      body.appendChild(nw);
+    }
+
+    // else children
+    if(d.hasElse && block.elseChildren!==null) {
+      const el=document.createElement('div');
+      el.className='else-label';
+      el.textContent='} else {';
+      body.appendChild(el);
+
+      const nw2=document.createElement('div');
+      nw2.className='nested-wrap';
+      block.elseChildren.forEach(c=>nw2.appendChild(renderBlock(c,block.elseChildren,block.id+'_else')));
+
+      const cz2=document.createElement('div');
+      cz2.className='child-zone';
+      if(!block.elseChildren.length) cz2.innerHTML='<div class="child-hint">Drop else blocks here</div>';
+      setupDrop(cz2, block.elseChildren, block.id+'_else');
+      nw2.appendChild(cz2);
+      body.appendChild(nw2);
+    }
+
+    wrap.appendChild(body);
+  }
+
+  // drop for reorder
+  wrap.addEventListener('dragover',e=>{e.preventDefault();});
+  wrap.addEventListener('drop',e=>{
+    e.stopPropagation();
+    const idx=sibArr.findIndex(b=>b.id===block.id);
+    handleDrop(sibArr,parentId,idx);
+  });
+
+  return wrap;
+}
+
+let selId=null;
+
+function setupDrop(el, arr, pid) {
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('dov');});
+  el.addEventListener('dragleave',()=>el.classList.remove('dov'));
+  el.addEventListener('drop',e=>{ e.stopPropagation(); el.classList.remove('dov'); handleDrop(arr,pid); });
+}
+
+function handleDrop(targetArr, parentId, insertIdx) {
+  if(!dragSrc) return;
+  saveHistory();
+
+  if(dragSrc.type==='palette') {
+    const nb=newBlock(dragSrc.blockType); if(!nb) return;
+    if(insertIdx!==undefined) targetArr.splice(insertIdx,0,nb);
+    else targetArr.push(nb);
+  } else {
+    const {blockId,sibArr:srcArr}=dragSrc;
+    const srcIdx=srcArr.findIndex(b=>b.id===blockId);
+    if(srcIdx===-1) return;
+    const [moved]=srcArr.splice(srcIdx,1);
+    if(isDescendant(moved,parentId)){srcArr.splice(srcIdx,0,moved);return;}
+    if(insertIdx!==undefined){
+      const adj=(srcArr===targetArr&&insertIdx>srcIdx)?insertIdx-1:insertIdx;
+      targetArr.splice(adj,0,moved);
+    } else targetArr.push(moved);
+  }
+  dragSrc=null;
+  render();
+}
+
+// Canvas drop zone
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dov');});
+dz.addEventListener('dragleave',e=>{ if(!dz.contains(e.relatedTarget)) dz.classList.remove('dov');});
+dz.addEventListener('drop',e=>{
+  dz.classList.remove('dov');
+  if(e.target===dz||e.target.id==='es'||e.target.closest('.empty-state')) handleDrop(blocks,null);
+});
+
+function toggleC(id) { const b=findBlock(id,blocks); if(b){b.collapsed=!b.collapsed;render();} }
+function delBlock(id) { saveHistory(); removeBlock(id,blocks); if(selId===id)selId=null; render(); }
+function dupBlock(id) {
+  saveHistory();
+  const b=findBlock(id,blocks); if(!b) return;
+  const copy=JSON.parse(JSON.stringify(b)); reassignIds(copy);
+  const arr=blocks; // search parent later
+  function insertAfter(id,arr){
+    const i=arr.findIndex(b=>b.id===id);
+    if(i!==-1){arr.splice(i+1,0,copy);return true;}
+    for(const b of arr){
+      if(b.children&&insertAfter(id,b.children)) return true;
+      if(b.elseChildren&&insertAfter(id,b.elseChildren)) return true;
+    }
+    return false;
+  }
+  insertAfter(id,blocks);
+  render();
+}
+
+function collapseAll() { function ca(arr){arr.forEach(b=>{b.collapsed=true;if(b.children)ca(b.children);})} ca(blocks); render(); }
+function expandAll() { function ea(arr){arr.forEach(b=>{b.collapsed=false;if(b.children)ea(b.children);})} ea(blocks); render(); }
+function clearAll() { saveHistory(); blocks=[]; selId=null; render(); toast('Canvas cleared','inf'); }
+
+function setLang(l,btn) {
+  lang=l;
+  document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   updateCode();
 }
 
-function syntaxHighlight(code) {
-  return code
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/(\/\/.+)/g, '<span class="cm">$1</span>')
-    .replace(/\b(import|from|const|let|var|if|else|for|of|in|return|try|catch|async|await|true|false|null|undefined)\b/g, '<span class="kw">$1</span>')
-    .replace(/\b(world|system|player|entity|dim|dimension)\b/g, '<span class="ev">$1</span>')
-    .replace(/\b(subscribe|sendMessage|runCommand|getDimension|getPlayers|spawnEntity|addEffect|teleport|applyDamage|runInterval|runTimeout|run|clearRun|addTag|hasTag|setBlock|setTimeOfDay|setProperty|hasComponent|setGameMode)\b/g, '<span class="fn">$1</span>')
-    .replace(/("(?:[^"\\]|\\.)*")/g, '<span class="str">$1</span>')
-    .replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
-}
-
-function updateCode() {
-  const code = generateCode(currentLang);
-  document.getElementById('codeOutput').innerHTML = syntaxHighlight(code);
-}
-
 function copyCode() {
-  const code = generateCode(currentLang);
-  navigator.clipboard.writeText(code).then(() => showToast('Code copied! 📋', 'success'));
+  navigator.clipboard.writeText(generateCode()).then(()=>toast('Code copied! 📋','ok'));
 }
 
-// ══════════════════════════════════════════
-//  EXAMPLE SCRIPT
-// ══════════════════════════════════════════
-
-function loadExample() {
-  blocks = [];
-  blockIdCounter = 1;
-
-  // Comment block
-  const comment = createBlock('comment');
-  comment.fields.text = 'Example: Welcome players and give speed effect';
-  blocks.push(comment);
-
-  // Get dimension
-  const getDim = createBlock('world_getDimension');
-  getDim.fields.varName = 'overworld';
-  getDim.fields.dimId = 'overworld';
-  blocks.push(getDim);
-
-  // Player spawn event
-  const spawnEvent = createBlock('world_afterEvents_playerSpawn');
-  spawnEvent.fields.handlerName = 'ev';
-
-  // Get name child
-  const getName = createBlock('player_getName');
-  getName.fields.varName = 'name';
-  getName.fields.player = 'ev.player';
-  spawnEvent.children.push(getName);
-
-  // Send message child
-  const sendMsg = createBlock('player_sendMessage');
-  sendMsg.fields.player = 'ev.player';
-  sendMsg.fields.msg = '§aWelcome to the server!';
-  spawnEvent.children.push(sendMsg);
-
-  // Add effect child
-  const addEffect = createBlock('entity_addEffect');
-  addEffect.fields.entity = 'ev.player';
-  addEffect.fields.effect = 'speed';
-  addEffect.fields.duration = '200';
-  addEffect.fields.amplifier = '2';
-  spawnEvent.children.push(addEffect);
-
-  // Console log
-  const log = createBlock('console_log');
-  log.fields.msg = '`${name} joined!`';
-  spawnEvent.children.push(log);
-
-  blocks.push(spawnEvent);
-
-  // System interval
-  const interval = createBlock('system_runInterval');
-  interval.fields.ticks = '100';
-
-  const broadcast = createBlock('world_sendMessage');
-  broadcast.fields.msg = '§eThis server runs on Script API!';
-  interval.children.push(broadcast);
-
-  blocks.push(interval);
-
-  renderCanvas();
-  showToast('Example loaded! 🎉', 'success');
+function exportScript() {
+  const code=generateCode();
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(code);
+  a.download='script.'+(lang==='ts'?'ts':'js');
+  a.click();
+  toast('Exported! 💾','ok');
 }
 
-// ══════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  EXAMPLES
+// ══════════════════════════════════════════════════════════
 
-function showToast(msg, type = 'info') {
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
+const EXAMPLES = [
+  {
+    name:'👋 Welcome & Effects',
+    tag:'Beginner', tagColor:'#4ade80',
+    desc:'Greets players on spawn, gives speed effect & shows title screen.',
+    build: () => {
+      add('out_comment',{txt:'Welcome script — runs when a player spawns'});
+      const ev=add('ev_playerSpawn',{h:'ev'});
+      addChild(ev,'p_getName',{v:'name',p:'ev.player'});
+      addChild(ev,'p_sendMsgVar',{p:'ev.player',v:'`§aWelcome, §e${name}§a!`'});
+      addChild(ev,'p_onScreenDisplay',{p:'ev.player',title:'§6Welcome!',sub:'Enjoy your stay',fade:'10',stay:'70'});
+      addChild(ev,'ent_addEffect',{e:'ev.player',eff:'speed',dur:'200',amp:'1',show:'true'});
+      addChild(ev,'out_log',{msg:'`[Join] ${name}`'});
+    }
+  },
+  {
+    name:'💬 Chat Command System',
+    tag:'Intermediate', tagColor:'#60a5fa',
+    desc:'Processes !heal, !tp, and !kill commands typed in chat.',
+    build: () => {
+      add('out_comment',{txt:'Chat command handler'});
+      const ev=add('ev_chatSendBefore',{h:'ev'});
+      addChild(ev,'v_const',{name:'msg',val:'ev.message',typ:'string'});
+      addChild(ev,'v_const',{name:'sender',val:'ev.sender',typ:'Player'});
+      const sw=addChild(ev,'switch_block',{expr:'msg',cases:'!heal,!kill,!tp'});
+      addChild(ev,'cancel_event',{h:'ev'});
+      addChild(ev,'out_log',{msg:'`Command: ${msg} by ${sender.name}`'});
+    }
+  },
+  {
+    name:'🏆 Kill Counter + Leaderboard',
+    tag:'Intermediate', tagColor:'#60a5fa',
+    desc:'Tracks kills on scoreboard, announces top killer on death.',
+    build: () => {
+      add('out_comment',{txt:'Kill counter using scoreboard'});
+      const worldLoad=add('ev_worldLoad',{h:'ev'});
+      addChild(worldLoad,'sb_addObjective',{v:'killsObj',name:'kills',display:'§6Kills'});
+      const deathEv=add('ev_entityDie',{h:'ev'});
+      addChild(deathEv,'if_then',{cond:'ev.damageSource.damagingEntity?.typeId === "minecraft:player"'});
+      const ifB=deathEv.children[0];
+      addChildToBlock(ifB,'p_getName',{v:'killerName',p:'ev.damageSource.damagingEntity'});
+      addChildToBlock(ifB,'sb_getObjective',{v:'obj',name:'kills'});
+      addChildToBlock(ifB,'sb_addScore',{obj:'obj',entity:'ev.damageSource.damagingEntity',val:'1'});
+      addChildToBlock(ifB,'w_broadcastVar',{v:'`§e${killerName} §7scored a kill!`'});
+    }
+  },
+  {
+    name:'⏰ Game Loop & Timers',
+    tag:'Intermediate', tagColor:'#60a5fa',
+    desc:'A 60-second countdown game with interval updates and final cleanup.',
+    build: () => {
+      add('out_comment',{txt:'60s countdown game loop'});
+      add('v_let',{name:'timeLeft',val:'1200',typ:'number'});
+      add('v_let',{name:'gameRunning',val:'true',typ:'boolean'});
+      add('v_let',{name:'loopId',val:'0',typ:'number'});
+      const spawnEv=add('ev_playerSpawn',{h:'ev'});
+      addChild(spawnEv,'p_sendMsgVar',{p:'ev.player',v:'`§7Time left: ${Math.floor(timeLeft/20)}s`'});
+
+      const loop=add('sys_runInterval',{ticks:'20',id:'loopId'});
+      addChild(loop,'v_assign',{name:'timeLeft',op:'-=',val:'20'});
+      addChild(loop,'p_actionBar',{p:'p',msg:'§eTime: ${Math.floor(timeLeft/20)}s'});
+      const ifEnd=addChild(loop,'if_then',{cond:'timeLeft <= 0'});
+      addChildToBlock(ifEnd,'w_broadcast',{msg:'§cGame Over!'});
+      addChildToBlock(ifEnd,'sys_clearRun',{rid:'loopId'});
+      addChildToBlock(ifEnd,'v_assign',{name:'gameRunning',op:'=',val:'false'});
+    }
+  },
+  {
+    name:'💾 Dynamic Data Storage',
+    tag:'Advanced', tagColor:'#f87171',
+    desc:'Saves and loads per-player data using dynamic properties (persistent storage).',
+    build: () => {
+      add('out_comment',{txt:'Persistent player data with dynamic properties'});
+      const fn=add('fn_declare',{name:'savePlayerData',params:'player: Player, kills: number',ret:'void'});
+      addChildToBlock(fn,'dp_setEntity',{e:'player',key:'myPack:kills',val:'kills'});
+      addChildToBlock(fn,'out_log',{msg:'`Saved kills for ${player.name}: ${kills}`'});
+
+      const fn2=add('fn_declare',{name:'loadPlayerData',params:'player: Player',ret:'number'});
+      addChildToBlock(fn2,'v_const',{name:'kills',val:'(player.getDynamicProperty("myPack:kills") as number) ?? 0',typ:'number'});
+      addChildToBlock(fn2,'return_block',{val:'kills'});
+
+      const spawnEv=add('ev_playerSpawn',{h:'ev'});
+      addChild(spawnEv,'v_const',{name:'kills',val:'loadPlayerData(ev.player)',typ:'number'});
+      addChild(spawnEv,'p_sendMsgVar',{p:'ev.player',v:'`§7Your kills: §e${kills}`'});
+
+      const deathEv=add('ev_entityDie',{h:'ev'});
+      addChild(deathEv,'if_then',{cond:'ev.damageSource.damagingEntity?.typeId === "minecraft:player"'});
+      const ifB=deathEv.children[0];
+      addChildToBlock(ifB,'v_const',{name:'p2',val:'ev.damageSource.damagingEntity as Player',typ:'Player'});
+      addChildToBlock(ifB,'v_const',{name:'k',val:'loadPlayerData(p2) + 1',typ:'number'});
+      addChildToBlock(ifB,'fn_call',{name:'savePlayerData',args:'p2, k'});
+    }
+  },
+  {
+    name:'🎮 Action Form Menu',
+    tag:'Intermediate', tagColor:'#60a5fa',
+    desc:'Shows a UI menu when a player uses a special item.',
+    build: () => {
+      add('out_import',{items:'world, system',pkg:'@minecraft/server'});
+      add('out_import',{items:'ActionFormData',pkg:'@minecraft/server-ui'});
+      add('out_comment',{txt:'Opens a menu when player uses a stick'});
+      const ev=add('ev_itemUse',{h:'ev'});
+      addChild(ev,'if_then',{cond:'ev.itemStack.typeId === "minecraft:stick"'});
+      const ifB=ev.children[0];
+
+      const form=addChildToBlock(ifB,'form_action',{p:'ev.source',title:'§6Game Menu',body:'What do you want to do?',btn1:'§aHeal Me',btn2:'§cSuicide'});
+      addChildToBlock(form,'p_sendMsg',{p:'ev.source',msg:'§aYou chose an option!'});
+    }
+  },
+  {
+    name:'🌍 World Builder',
+    tag:'Advanced', tagColor:'#f87171',
+    desc:'Generates structures, fills areas and spawns particles on events.',
+    build: () => {
+      add('out_comment',{txt:'World building utilities'});
+      add('w_getDim',{v:'overworld',d:'overworld'});
+
+      const fn=add('fn_declare',{name:'buildPlatform',params:'center: Vector3, size: number',ret:'void'});
+      addChildToBlock(fn,'for_range',{iv:'x',n:'size'});
+      const forX=fn.children[0];
+      addChildToBlock(forX,'for_range',{iv:'z',n:'size'});
+      const forZ=forX.children[0];
+      addChildToBlock(forZ,'w_setBlock',{dim:'overworld',x:'center.x + x',y:'center.y',z:'center.z + z',bid:'minecraft:glass'});
+
+      const ev=add('ev_playerSpawn',{h:'ev'});
+      addChild(ev,'if_then',{cond:'ev.initialSpawn'});
+      const ifB=ev.children[0];
+      addChildToBlock(ifB,'fn_call',{name:'buildPlatform',args:'ev.player.location, 10'});
+      addChildToBlock(ifB,'out_particle',{dim:'overworld',id:'minecraft:explosion_particle',x:'ev.player.location.x',y:'ev.player.location.y+2',z:'ev.player.location.z'});
+      addChildToBlock(ifB,'p_sendMsg',{p:'ev.player',msg:'§aA platform was built for you!'});
+    }
+  },
+  {
+    name:'🛡 Anti-Cheat Basics',
+    tag:'Advanced', tagColor:'#f87171',
+    desc:'Monitors chat commands, checks for op status, and cancels suspicious events.',
+    build: () => {
+      add('out_comment',{txt:'Basic anti-cheat — cancel suspicious before-events'});
+      const chatEv=add('ev_chatSendBefore',{h:'ev'});
+      addChild(chatEv,'p_isOp',{v:'isOp',p:'ev.sender'});
+      addChild(chatEv,'if_then',{cond:'ev.message.startsWith("//") && !isOp'});
+      const ifB=chatEv.children[1];
+      addChildToBlock(ifB,'cancel_event',{h:'ev'});
+      addChildToBlock(ifB,'p_sendMsg',{p:'ev.sender',msg:'§cYou are not allowed to use WorldEdit commands!'});
+      addChildToBlock(ifB,'out_warn',{msg:'`[AntiCheat] ${ev.sender.name} tried: ${ev.message}`'});
+
+      add('out_comment',{txt:'Block breaking whitelist by tag'});
+      const breakEv=add('ev_playerBreakBefore',{h:'ev'});
+      addChild(breakEv,'p_hasTag',{v:'canBreak',p:'ev.player',tag:'builder'});
+      addChild(breakEv,'if_then',{cond:'!canBreak'});
+      const ifB2=breakEv.children[1];
+      addChildToBlock(ifB2,'cancel_event',{h:'ev'});
+      addChildToBlock(ifB2,'p_sendMsg',{p:'ev.player',msg:'§cYou cannot break blocks here!'});
+    }
+  }
+];
+
+function add(type, extraFields={}) {
+  const b=newBlock(type); if(!b) return null;
+  Object.assign(b.fields, extraFields);
+  blocks.push(b);
+  return b;
+}
+
+function addChild(parent, type, extraFields={}) {
+  if(!parent||!parent.children) return null;
+  const b=newBlock(type); if(!b) return null;
+  Object.assign(b.fields, extraFields);
+  parent.children.push(b);
+  return b;
+}
+
+function addChildToBlock(parent, type, extraFields={}) {
+  return addChild(parent, type, extraFields);
+}
+
+function openExamples() {
+  const cards=document.getElementById('exCards');
+  cards.innerHTML='';
+  EXAMPLES.forEach((ex,i)=>{
+    const card=document.createElement('div');
+    card.className='example-card';
+    card.innerHTML=`<span class="ex-tag" style="background:${ex.tagColor}22;color:${ex.tagColor}">${ex.tag}</span><h3>${ex.name}</h3><p>${ex.desc}</p>`;
+    card.onclick=()=>{ closeExamples(); loadExample(i); };
+    cards.appendChild(card);
+  });
+  document.getElementById('exModal').classList.add('open');
+}
+
+function closeExamples() { document.getElementById('exModal').classList.remove('open'); }
+document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeExamples(); });
+
+function loadExample(idx) {
+  saveHistory();
+  blocks=[];
+  bid=1;
+  selId=null;
+  EXAMPLES[idx].build();
+  render();
+  toast(`Loaded: ${EXAMPLES[idx].name}`,'ok');
+}
+
+// ── TOAST ───────────────────────────────────────────────
+function toast(msg,type='inf') {
+  const t=document.createElement('div');
+  t.className=`toast ${type==='ok'?'ok':type==='warn'?'warn':'inf'}`;
+  t.textContent=msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2500);
+  setTimeout(()=>t.remove(),2500);
 }
 
-// ══════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════
-
+// ── INIT ────────────────────────────────────────────────
 renderPalette();
-renderCanvas();
+render();
 </script>
 </body>
 </html>
